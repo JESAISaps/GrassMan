@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-class App():
+class MainApp():
 
     def __init__(self):
         self.root = tk.Tk()
@@ -10,4 +10,4 @@ class App():
         self.root.mainloop()
 
 if __name__ == "__main__":
-    App()
+    MainApp()
