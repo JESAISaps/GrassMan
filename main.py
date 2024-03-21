@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, Tk
+from tkinter import ttk, Tk, Button
 
 class MainApp(Tk):
 
@@ -9,8 +9,8 @@ class MainApp(Tk):
         
         self.geometry("720x420")
 
-        self.exitButton = ttk.Button(self, text="Quitter", command=self.destroy)
-        self.exitButton.pack(side="bottom")
+        self.exitButton = Button(self, text="Quitter", command=self.destroy, bg="red")
+        self.exitButton.pack(expand=1, fill="both")
 
 
 if __name__ == "__main__":
