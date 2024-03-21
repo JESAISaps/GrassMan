@@ -18,4 +18,3 @@ class MainApp(Tk):
 if __name__ == "__main__":
     App = MainApp()
     App.mainloop()
-    print("hello")
