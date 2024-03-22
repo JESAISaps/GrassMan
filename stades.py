@@ -4,8 +4,8 @@ class Stade:
 
     def __init__(self, nom) -> None:
         self.nom = nom
-        self.tempMap = self.temperature()
-        self.lightMap = self.soleil()
+        self.temperature1 = self.temperature()
+        self.ensoleillement = self.soleil()
         self.meteo = self.createMeteo
 
     def createBlankStadium(self, x, y):
@@ -23,14 +23,33 @@ class Stade:
         listeSoleil = self.createBlankStadium(100, 50)
         for ligne in listeSoleil:
             for k in range(len(ligne)):
-                    soleilHiver = randint(-10,10)
+                    soleilHiver = randint(0,1)
                     ligne[k] = soleilHiver
         return(listeSoleil)
     
     def createMeteo(self):
         meteoAleatoire = choice("ensoleille","nuageux","pluie","neige","brouillard")
         return(meteoAleatoire)
-       
+    
+    def modifMeteo(self):
+         self.meteo = self.createMeteo()
+    
+    def modifSoleil(self):
+         self.ensoleillement = self.soleil()
+
+    def modifTemp(self):
+         self.temperature1 = self.temperature()
+
+    def getTemp(self):
+         return self.temperature1
+    
+    def GetSoleil(self):
+         return self.soleil
+    
+    def GetMeteo(self):
+         return self.meteo
+
+
 
 if __name__ == "__main__":
     

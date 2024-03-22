@@ -6,9 +6,9 @@ class BDD():
     def __init__(self) -> None:
         self.bdd = sqlite3.connect("./data/bdd.db").cursor()
         self.stade = stades.Stade("Velodrome")
-        self.Tmap=self.stade.tempMap
-        self.Meteo=self.stade.meteo
-        self.Lightmap=self.stade.lightMap
+        self.Tmap=self.stade.getTemp()
+        self.Meteo=self.stade.GetMeteo()
+        self.Lightmap=self.stade.GetSoleil()
 
     def createbdd(self):
         self.bdd.execute('CREATE TABLE Temperature (CoX INTEGER,CoY INTEGER,Temperature INTEGER NOT NULL,PRIMARY KEY (CoX,CoY))')
