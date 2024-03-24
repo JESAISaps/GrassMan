@@ -6,7 +6,7 @@ class Stade:
         self.nom = nom
         self.longeur = longueur
         self.largeur = largeur
-        self.temperature1 = self.temperature()
+        self.temperature1 = self.ajustemp()
         self.ensoleillement = self.soleil()
         self.meteo = self.createMeteo()
     def createBlankStadium(self, x, y):
