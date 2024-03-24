@@ -35,7 +35,7 @@ class Stade:
                 else : 
                     temperature =listeTemp[o-1][k-1]+randint(-1,1)
                 listeTemp[o][k] = temperature
-        print(listeTemp)
+        #print(listeTemp)
         return(listeTemp)
 
     def soleil(self):
