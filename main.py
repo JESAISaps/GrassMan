@@ -23,7 +23,7 @@ class MainApp(Tk):
 
         #self.exitButton = tk.Button(self, text="Bouh", command=self.destroy, bg="red", font=("Helvetica", 40))
         #self.exitButton.pack(side="right")
-        self.createGraph(self.stade.GetSoleil())
+        self.createGraph(self.stade.getTemp())
 
     #def createTempGraph(self, stade:Stade):
     #    tempsImage = plt.imshow([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()])
@@ -52,7 +52,7 @@ class MainApp(Tk):
         matim.imsave("./temp/tempGraph.png", self.imageData)
         self.image = Image.open("./temp/tempGraph.png")
 
-        self.image = self.image.resize((500*3, 250*3))
+        self.image = self.image.resize((500, 250))
 
         self.photo = ImageTk.PhotoImage(self.image)
 

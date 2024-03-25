@@ -31,7 +31,7 @@ class Stade:
                 elif o==0:
                     temperature = listeTemp[o][k-1]+randint(-1,1)
                 elif k==0:
-                    temperature = listeTemp[o-1][k]+randint(-1,1)
+                    temperature = sum([listeTemp[o-1][k], listeTemp[o-1][k+1]])/2+randint(-1,1)
                 elif k==len(listeTemp[o])-1:
                     temperature = sum([listeTemp[o-1][k-1], listeTemp[o-1][k],listeTemp[o][k-1]])/3+randint(-1,1)
                 else : 
