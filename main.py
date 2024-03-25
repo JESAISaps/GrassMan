@@ -33,6 +33,7 @@ class MainApp(Tk):
     def showTemps(self, stade:Stade):
 
         self.imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()], sigma=0.75)).astype(np.uint8)
+        #self.imageData = np.array([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()]).astype(np.uint8)
 
         matim.imsave("./temp/tempTemp.png", self.imageData)
         self.image = Image.open("./temp/tempTemp.png")
