@@ -23,29 +23,41 @@ class MainApp(Tk):
 
         #self.exitButton = tk.Button(self, text="Bouh", command=self.destroy, bg="red", font=("Helvetica", 40))
         #self.exitButton.pack(side="right")
-        self.showTemps(self.stade)
+        self.createGraph(self.stade.GetSoleil())
 
     #def createTempGraph(self, stade:Stade):
     #    tempsImage = plt.imshow([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()])
     #    tempsImage = gaussian_filter(tempsImage, sigma=1.5)
-    #    return tempsImage
-    
-    def showTemps(self, stade:Stade):
+    #    return tempsImage*
 
-        self.imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()], sigma=0.75)).astype(np.uint8)
+   #def showTemps(self, stade:Stade):
+
+   #    self.imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()], sigma=0.75)).astype(np.uint8)
+   #    #self.imageData = np.array([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()]).astype(np.uint8)
+
+   #    matim.imsave("./temp/tempTemp.png", self.imageData)
+   #    self.image = Image.open("./temp/tempTemp.png")
+
+   #    self.image = self.image.resize((500*3, 250*3))
+
+   #    self.photo = ImageTk.PhotoImage(self.image)
+
+   #    label = tk.Label(self, image=self.photo)
+   #    label.pack(expand=1, side="left",fill="both")
+
+    def createGraph(self, data):
+        self.imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
         #self.imageData = np.array([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()]).astype(np.uint8)
 
-        matim.imsave("./temp/tempTemp.png", self.imageData)
-        self.image = Image.open("./temp/tempTemp.png")
+        matim.imsave("./temp/tempGraph.png", self.imageData)
+        self.image = Image.open("./temp/tempGraph.png")
 
-        self.image = self.image.resize((500, 250))
+        self.image = self.image.resize((500*3, 250*3))
 
         self.photo = ImageTk.PhotoImage(self.image)
 
         label = tk.Label(self, image=self.photo)
         label.pack(expand=1, side="left",fill="both")
-
-
 
 if __name__ == "__main__":
     App = MainApp()

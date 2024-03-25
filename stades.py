@@ -65,7 +65,7 @@ class Stade:
          return self.temperature1
 
     def GetSoleil(self):
-         return self.soleil
+         return self.ensoleillement
 
     def GetMeteo(self):
          return self.meteo
