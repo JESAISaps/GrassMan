@@ -6,28 +6,21 @@ class Stade:
         self.nom = nom
         self.longeur = longueur
         self.largeur = largeur
-        self.temperature1 = self.ajustemp()
+        self.temperature1 = self.temperature()
         self.ensoleillement = self.soleil()
         self.meteo = self.createMeteo()
+
     def createBlankStadium(self, x, y):
         return [[0] * x for _ in range(y)]
 
     def temperature(self):
-        listeTemp = self.createBlankStadium(self.longeur, self.largeur)
-        for ligne in listeTemp:
-            for k in range(len(ligne)):
-                    temperatureHiver = randint(-10,10)
-                    ligne[k] = temperatureHiver
-        return(listeTemp)
-
-    def ajustemp(self):
         listeTemp = self.createBlankStadium(self.longeur, self.largeur)
         Temp0 = randint(-10,10)
         listeTemp[0][0]=Temp0
         
         # tempMax limite la variation de temperature a 2 * la 
         # temperature de depart sur l'ensemble du terrain
-        tempMax = abs(Temp0*2)
+        tempMax = abs(Temp0 + 20)
         for o in range(len(listeTemp)):                
             for k in range(len(listeTemp[o])):
                 if o==0 and k==0:

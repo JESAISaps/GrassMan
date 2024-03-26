@@ -16,6 +16,7 @@ class MainApp(Tk):
 
         #initializes Tk
         super().__init__()
+
         self.stade = Stade("Velodrome")
         
         # sets window default size
@@ -23,41 +24,39 @@ class MainApp(Tk):
 
         #self.exitButton = tk.Button(self, text="Bouh", command=self.destroy, bg="red", font=("Helvetica", 40))
         #self.exitButton.pack(side="right")
-        self.createGraph(self.stade.getTemp())
+        
+        self.graphImage = self.createGraph(self.stade.getTemp())
+        self.graphLabel = tk.Label(self, image=self.graphImage)
+        self.graphLabel.pack(side="left")
 
-    #def createTempGraph(self, stade:Stade):
-    #    tempsImage = plt.imshow([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()])
-    #    tempsImage = gaussian_filter(tempsImage, sigma=1.5)
-    #    return tempsImage*
+        self.refreshGraphButton = tk.Button(self, text="Refresh", command=self.updateGraph, font=("Helvetica", 25))
+        self.refreshGraphButton.pack(side="right", padx=30, pady=30)
 
-   #def showTemps(self, stade:Stade):
-
-   #    self.imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()], sigma=0.75)).astype(np.uint8)
-   #    #self.imageData = np.array([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()]).astype(np.uint8)
-
-   #    matim.imsave("./temp/tempTemp.png", self.imageData)
-   #    self.image = Image.open("./temp/tempTemp.png")
-
-   #    self.image = self.image.resize((500*3, 250*3))
-
-   #    self.photo = ImageTk.PhotoImage(self.image)
-
-   #    label = tk.Label(self, image=self.photo)
-   #    label.pack(expand=1, side="left",fill="both")
 
     def createGraph(self, data):
-        self.imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
+        imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
         #self.imageData = np.array([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()]).astype(np.uint8)
 
-        matim.imsave("./temp.gitignore/tempGraph.png", self.imageData)
-        self.image = Image.open("./temp.gitignore/tempGraph.png")
+        matim.imsave("./temp.gitignore/tempGraph.png", imageData)
+        image = Image.open("./temp.gitignore/tempGraph.png")
 
-        self.image = self.image.resize((500, 250))
+        image = image.resize((500, 250))
 
-        self.photo = ImageTk.PhotoImage(self.image)
+        photo = ImageTk.PhotoImage(image)
 
-        label = tk.Label(self, image=self.photo)
-        label.pack(expand=1, side="left",fill="both")
+        return photo
+
+    def updateGraph(self):
+        # On detruit l'objet du graph pour le recreer
+        self.graphLabel.destroy()
+
+        #on met a jour les données de temperatures
+        self.stade.modifTemp()
+
+        #on recrée le graph
+        self.graphImage = self.createGraph(self.stade.getTemp())        
+        self.graphLabel = tk.Label(self, image=self.graphImage)  
+        self.graphLabel.pack(side="left")
 
 if __name__ == "__main__":
     App = MainApp()
