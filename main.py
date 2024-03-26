@@ -49,8 +49,8 @@ class MainApp(Tk):
         self.imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
         #self.imageData = np.array([[[0,0,(element+20)*7] for element in ligne] for ligne in stade.getTemp()]).astype(np.uint8)
 
-        matim.imsave("./temp/tempGraph.png", self.imageData)
-        self.image = Image.open("./temp/tempGraph.png")
+        matim.imsave("./temp.gitignore/tempGraph.png", self.imageData)
+        self.image = Image.open("./temp.gitignore/tempGraph.png")
 
         self.image = self.image.resize((500, 250))
 

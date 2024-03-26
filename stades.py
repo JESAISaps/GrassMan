@@ -24,6 +24,10 @@ class Stade:
         listeTemp = self.createBlankStadium(self.longeur, self.largeur)
         Temp0 = randint(-10,10)
         listeTemp[0][0]=Temp0
+        
+        # tempMax limite la variation de temperature a 2 * la 
+        # temperature de depart sur l'ensemble du terrain
+        tempMax = abs(Temp0*2)
         for o in range(len(listeTemp)):                
             for k in range(len(listeTemp[o])):
                 if o==0 and k==0:
@@ -36,6 +40,9 @@ class Stade:
                     temperature = sum([listeTemp[o-1][k-1], listeTemp[o-1][k],listeTemp[o][k-1]])/3+randint(-1,1)
                 else : 
                     temperature = sum([listeTemp[o-1][k-1], listeTemp[o-1][k],listeTemp[o][k-1],listeTemp[o-1][k+1]])/4+randint(-1,1)
+                if abs(temperature) > abs(tempMax):
+                     # On ajuste temperature a tempMax et on lui redonne son signe
+                     temperature = tempMax * temperature/abs(temperature)
                 listeTemp[o][k] = temperature
         #print(listeTemp)
         return(listeTemp)
