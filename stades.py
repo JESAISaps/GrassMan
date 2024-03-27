@@ -6,14 +6,18 @@ class Stade:
         self.nom = nom
         self.longeur = longueur
         self.largeur = largeur
-        self.temperature1 = self.temperature()
-        self.ensoleillement = self.soleil()
+        self.temperature1 = self.Temperature()
+        self.ensoleillement = self.Soleil()
         self.meteo = self.createMeteo()
+        self.toit = self.BougerToit()
 
     def createBlankStadium(self, x, y):
+        """
+        return null matrice size y * x
+        """
         return [[0] * x for _ in range(y)]
 
-    def temperature(self):
+    def Temperature(self):
         listeTemp = self.createBlankStadium(self.longeur, self.largeur)
         Temp0 = randint(-10,10)
         listeTemp[0][0]=Temp0
@@ -40,7 +44,10 @@ class Stade:
         #print(listeTemp)
         return(listeTemp)
 
-    def soleil(self):
+    def Soleil(self):
+        """
+        Création stade 
+        """
         listeSoleil = self.createBlankStadium(self.longeur, self.largeur)
         for ligne in listeSoleil:
             for k in range(len(ligne)):
@@ -53,27 +60,35 @@ class Stade:
         return(meteoAleatoire)
 
     def modifMeteo(self):
-         self.meteo = self.createMeteo()
+        if self.meteo == "ensoleille":
+            self.meteo =  choice(["ensoleille","nuageux","brouillard","ensoleille","ensoleille"])
+        else :
+            self.meteo =  choice(["ensoleille","nuageux","pluie","neige","brouillard"])
+        self.toit = self.GetMooveRoof()
 
     def modifSoleil(self):
-         self.ensoleillement = self.soleil()
+        self.ensoleillement = self.Soleil()
 
     def modifTemp(self):
-         self.temperature1 = self.temperature()
+        self.temperature1 = self.Temperature()
 
     def getTemp(self):
-         return self.temperature1
+        return self.temperature1
 
     def GetSoleil(self):
-         return self.ensoleillement
+        return self.ensoleillement
 
     def GetMeteo(self):
-         return self.meteo
+        return self.meteo
 
     def GetSize(self):
-         return self.longeur, self.largeur
+        return self.longeur, self.largeur
     
-
+    def GetMooveRoof(self):
+        if self.meteo == "pluie" or self.meteo == "neige":
+            return("closed")
+        else :
+            return("open")  
 
 
 # condition vraie seulement si ce script est celui qui a ete run, Faux si il est run dans un import
