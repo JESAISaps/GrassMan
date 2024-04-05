@@ -6,8 +6,8 @@ class Stade:
         self.nom = nom
         self.longeur = longueur
         self.largeur = largeur
-        self.temperature1 = self.temperature()
-        self.ensoleillement = self.soleil()
+        self.temperature1 = self.Temperature()
+        self.ensoleillement = self.Soleil()
         self.meteo = self.createMeteo()
         self.isRoofClosed = self.changeRoofState()
 
@@ -127,7 +127,11 @@ class Stade:
         """
         return self.longeur, self.largeur
     
-
+    def GetMooveRoof(self):
+        if self.meteo == "pluie" or self.meteo == "neige":
+            return("closed")
+        else :
+            return("open")  
 
 
 # condition vraie seulement si ce script est celui qui a ete run, Faux si il est run dans un import
