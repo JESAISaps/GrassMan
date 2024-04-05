@@ -9,20 +9,45 @@ class Stade:
         self.temperature1 = self.temperature()
         self.ensoleillement = self.soleil()
         self.meteo = self.createMeteo()
+        self.isRoofClosed = self.changeRoofState()
 
     def createBlankStadium(self, x, y):
+        """
+        Cree une matrice nulle de dimension yx
+        """
         return [[0] * x for _ in range(y)]
 
+
+    def changeRoofState(self):
+        """
+        Retourne Vrai si on ferme le stade et Faux sinon
+        """
+        if self.meteo == "pluie" or self.meteo == "neige":
+            return True
+        else :
+            return False
+
+ 
     def temperature(self):
+        """
+        Crée une matrice des temperatures
+        Chaque élement représente 1 m carré
+        crée de manière à être le plus réaliste possible, mais ne prend pas en compte
+        la matrice précédente.
+        """
         listeTemp = self.createBlankStadium(self.longeur, self.largeur)
         Temp0 = randint(-10,10)
         listeTemp[0][0]=Temp0
         
         # tempMax limite la variation de temperature a 2 * la 
         # temperature de depart sur l'ensemble du terrain
-        tempMax = abs(Temp0 + 20)
+        tempMax = abs(Temp0 +10)
         for o in range(len(listeTemp)):                
             for k in range(len(listeTemp[o])):
+                # on va faire une temperature qui depend de celles créées précédement, à proximité
+                # de l'element actuel
+                
+                # cas limites aux bord de la matrice
                 if o==0 and k==0:
                     temperature=Temp0
                 elif o==0:
@@ -33,14 +58,18 @@ class Stade:
                     temperature = sum([listeTemp[o-1][k-1], listeTemp[o-1][k],listeTemp[o][k-1]])/3+randint(-1,1)
                 else : 
                     temperature = sum([listeTemp[o-1][k-1], listeTemp[o-1][k],listeTemp[o][k-1],listeTemp[o-1][k+1]])/4+randint(-1,1)
+                    
                 if abs(temperature) > abs(tempMax):
-                     # On ajuste temperature a tempMax et on lui redonne son signe
+                     # On ajuste temperature a tempMax si ça depasse et on lui redonne son signe
                      temperature = tempMax * temperature/abs(temperature)
                 listeTemp[o][k] = temperature
         #print(listeTemp)
         return(listeTemp)
 
     def soleil(self):
+        """
+        Fonction qui va pas tarder a degager
+        """
         listeSoleil = self.createBlankStadium(self.longeur, self.largeur)
         for ligne in listeSoleil:
             for k in range(len(ligne)):
@@ -49,29 +78,54 @@ class Stade:
         return(listeSoleil)
 
     def createMeteo(self):
+        """""
+        Renvoie une météo aléatoire
+        """
         meteoAleatoire = choice(["ensoleille","nuageux","pluie","neige","brouillard"])
         return(meteoAleatoire)
 
     def modifMeteo(self):
-         self.meteo = self.createMeteo()
+        """
+        Modifie la météo, modifie la variable et adapte l'ouverture du toit si besoin
+        """
+        self.meteo = self.createMeteo()
+        self.isRoofClosed = self.changeRoofState()
 
     def modifSoleil(self):
-         self.ensoleillement = self.soleil()
+        """
+        Modifie la variable ensoleillement 
+        """
+        self.ensoleillement = self.soleil()
 
     def modifTemp(self):
-         self.temperature1 = self.temperature()
+        """
+        Modifie la variable temperature 
+        """
+        self.temperature1 = self.temperature()
 
     def getTemp(self):
-         return self.temperature1
+        """
+        retourne la variable temperature 
+        """
+        return self.temperature1
 
     def GetSoleil(self):
-         return self.ensoleillement
+        """
+        retourne la variable ensoleillement 
+        """
+        return self.ensoleillement
 
     def GetMeteo(self):
-         return self.meteo
+        """
+        retourne la variable meteo 
+        """
+        return self.meteo
 
     def GetSize(self):
-         return self.longeur, self.largeur
+        """
+        retourne la variable taille du stade sous la forme d'un tuple
+        """
+        return self.longeur, self.largeur
     
 
 
@@ -80,4 +134,4 @@ class Stade:
 if __name__ == "__main__":
     
     s = Stade("Velodrome")
-    s.ajustemp()
+    s.temperature()

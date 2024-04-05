@@ -17,7 +17,7 @@ class MainApp(Tk):
         #initializes Tk
         super().__init__()
 
-        self.stade = Stade("Velodrome")
+        self.stade = Stade("Velodrome", 100, 50)
         
         # sets window default size
         self.geometry("720x420")
@@ -61,5 +61,3 @@ class MainApp(Tk):
 if __name__ == "__main__":
     App = MainApp()
     App.mainloop()
-    #plt.imshow(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in Stade("Blob").getTemp()], sigma=1.5))
-    #plt.show()
