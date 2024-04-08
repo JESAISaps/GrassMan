@@ -47,13 +47,13 @@ class MainApp(Tk):
         return photo
 
     def updateGraph(self):
-        # On detruit l'objet du graph pour le recreer
+        # On detruit l'objet du graphe pour le recreer
         self.graphLabel.destroy()
 
-        #on met a jour les données de temperatures
+        #on met a jour les données de temperature
         self.stade.modifTemp()
 
-        #on recrée le graph
+        #on recrée le graphe
         self.graphImage = self.createGraph(self.stade.getTemp())        
         self.graphLabel = tk.Label(self, image=self.graphImage)  
         self.graphLabel.pack(side="left")

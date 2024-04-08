@@ -6,10 +6,12 @@ class Stade:
         self.nom = nom
         self.longeur = longueur
         self.largeur = largeur
-        self.temperature1 = self.Temperature()
-        self.ensoleillement = self.Soleil()
+        self.temperature1 = self.temperature()
+        self.ensoleillement = self.soleil()
         self.meteo = self.createMeteo()
         self.isRoofClosed = self.changeRoofState()
+        self.chauffage = self.gestionchauffage()
+        self.arrosage = self.gestionarrosage()
 
     def createBlankStadium(self, x, y):
         """
@@ -26,7 +28,26 @@ class Stade:
             return True
         else :
             return False
+        
+    def gestionchauffage(self):
+        """
+        Retourne Vrai si on chauffe le stade et Faux sinon
+        """
+        for i in range (len(self.temperature1)):
+                    for k in range(len(self.temperature1[i])):
+                        if (self.temperature1[i][k]) <=0 :
+                            return True 
+        return False
 
+    def gestionarrosage(self):
+        """
+        Retourne Vrai si on arrose le stade et Faux sinon
+        """
+        for i in range (len(self.temperature1)):
+                    for k in range(len(self.temperature1[i])):
+                        if (self.temperature1[i][k]) >=25 :
+                            return True 
+        return False
  
     def temperature(self):
         """
@@ -136,6 +157,5 @@ class Stade:
 
 # condition vraie seulement si ce script est celui qui a ete run, Faux si il est run dans un import
 if __name__ == "__main__":
-    
     s = Stade("Velodrome")
     s.temperature()
