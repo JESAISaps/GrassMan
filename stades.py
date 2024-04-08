@@ -1,4 +1,5 @@
 from random import randint, choice
+from math import floor
 
 class Stade:
 
@@ -6,7 +7,7 @@ class Stade:
         self.nom = nom
         self.longeur = longueur
         self.largeur = largeur
-        self.temperature1 = self.temperature()
+        self.temperature1 = self.CreateFirstTempMap()
         self.ensoleillement = self.soleil()
         self.meteo = self.createMeteo()
         self.isRoofClosed = self.changeRoofState()
@@ -35,10 +36,10 @@ class Stade:
         """
         for i in range (len(self.temperature1)):
                     for k in range(len(self.temperature1[i])):
-                        if (self.temperature1[i][k]) <=0 :
+                        if (self.temperature1[i][k]) <=10 :
                             return True 
         return False
-
+    
     def gestionarrosage(self):
         """
         Retourne Vrai si on arrose le stade et Faux sinon
@@ -49,7 +50,7 @@ class Stade:
                             return True 
         return False
  
-    def temperature(self):
+    def CreateFirstTempMap(self):
         """
         Crée une matrice des temperatures
         Chaque élement représente 1 m carré
@@ -83,8 +84,13 @@ class Stade:
                 if abs(temperature) > abs(tempMax):
                      # On ajuste temperature a tempMax si ça depasse et on lui redonne son signe
                      temperature = tempMax * temperature/abs(temperature)
-                listeTemp[o][k] = temperature
-        #print(listeTemp)
+
+                if temperature - floor(temperature) <= .5:
+                    listeTemp[o][k] = floor(temperature) + .5
+                else:
+                    listeTemp[o][k] = floor(temperature) 
+                
+        print(listeTemp)
         return(listeTemp)
 
     def soleil(self):
@@ -122,7 +128,19 @@ class Stade:
         """
         Modifie la variable temperature 
         """
-        self.temperature1 = self.temperature()
+        #self.temperature1 = self.temperature() # temperature modifiée aléatoirement
+
+        if self.gestionchauffage() == True :
+             for k in range(len(self.temperature1)):
+                  for i in range(len(self.temperature1[k])):
+                        self.temperature1[k][i] = self.temperature1[k][i]+2
+        if self.gestionarrosage() == True :
+             for k in range(len(self.temperature1)):
+                  for i in range(len(self.temperature1[k])):
+                        self.temperature1[k][i] = self.temperature1[k][i]-2
+        
+        print(self.temperature1)
+
 
     def getTemp(self):
         """
@@ -158,4 +176,4 @@ class Stade:
 # condition vraie seulement si ce script est celui qui a ete run, Faux si il est run dans un import
 if __name__ == "__main__":
     s = Stade("Velodrome")
-    s.temperature()
+    s.CreateFirstTemp()

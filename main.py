@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, Tk
-from ConvBDD import BDD
+#from ConvBDD import BDD
 from matplotlib import pyplot as plt
 from matplotlib import image as matim
 import numpy as np
