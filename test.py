@@ -56,7 +56,8 @@ class StartPage(tk.Frame):
 		# grid
 		label.grid(row = 0, column = 4, padx = 10, pady = 10) 
 
-		button1 = ttk.Button(self, text ="Page 1", command = lambda : controller.show_frame(Page1))
+		button1 = ttk.Button(self, text ="Page 1",
+		command = lambda : controller.show_frame(Page1))
 	
 		# putting the button in its place by
 		# using grid

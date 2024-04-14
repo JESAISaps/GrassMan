@@ -3,10 +3,10 @@ from math import floor
 
 class Stade:
 
-    def __init__(self, nom:str, longueur:int=100, largeur:int=50) -> None:
+    def __init__(self, nom:str, *dimensions) -> None:
         self.nom = nom
-        self.longeur = longueur
-        self.largeur = largeur
+        self.longeur = dimensions[0]
+        self.largeur = dimensions[1]
         self.temperature1 = self.CreateFirstTempMap()
         self.ensoleillement = self.soleil()
         self.meteo = self.createMeteo()
