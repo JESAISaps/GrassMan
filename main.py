@@ -36,7 +36,10 @@ class App(tk.Tk):
     # to display the frame passed as parameter
     def show_frame(self, cont):
 
+        # remove current page
         self.frames[self.activeFrame].grid_forget()
+
+        # sets up new frame
         self.activeFrame = cont
         frame = self.frames[cont]
         frame.grid()
@@ -52,6 +55,7 @@ class HomeFrame(tk.Frame):
 
         tk.Frame.__init__(self, parent)
 
+        # reference to controller, might be usefull
         self.controller = controller
 
         self.createStadiumButton = ttk.Button(self, text="Creer un stade", command=lambda : self.controller.show_frame("CreateStadium"))
@@ -66,6 +70,7 @@ class CreateStadiumFrame(tk.Frame):
 
         self.controller = controller
 
+        # default dimensions, will not be used, it's just for initialisation
         self.dimensionX = 100
         self.dimensionY = 50
 
@@ -90,6 +95,9 @@ class CreateStadiumFrame(tk.Frame):
         self.ErrorLabel = ttk.Label(self, text = "Veuillez verifier vos entrées")
     
     def CreateNewStadium(self):
+        """
+        Calls funtion to check in inputs are correct and calls App method to add the stadium
+        """
         if self.CheckValues():
             self.controller.AddStadiumFrame(self.newStadiumNameEntry.get(), int(self.dimensionEntryX.get()), int(self.dimensionEntryY.get()))
             self.controller.show_frame(self.newStadiumNameEntry.get())
@@ -98,16 +106,20 @@ class CreateStadiumFrame(tk.Frame):
     
     def CheckValues(self):
         isGood = True
+
+        # name must not be empty or just spaces
         if self.newStadiumNameEntry.get().replace(" ", "") == "":
             isGood = False
             self.newStadiumNameEntry.delete(0, "end")
         try:
+            # dimensions must not be empty or NaN
             self.dimensionX = int(self.dimensionEntryX.get())
             self.dimensionY = int(self.dimensionEntryY.get())
         except:
             isGood = False
             self.dimensionEntryX.delete(0, 'end')
             self.dimensionEntryY.delete(0, 'end')
+            
         return isGood
     
 class StadiumFrameTemplate(tk.Frame):
