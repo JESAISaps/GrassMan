@@ -79,12 +79,16 @@ class CreateStadiumFrame(tk.Frame):
 
         self.stadiumNameLabel = ttk.Label(self, text="Nom du nouveau stade: ")
         self.stadiumNameLabel.pack()
-        self.newStadiumNameEntry = ttk.Entry(self, textvariable="ex : Velodrome")
+
+        self.stadiumName = tk.StringVar()
+        self.newStadiumNameEntry = ttk.Entry(self, textvariable=self.stadiumName)
         self.newStadiumNameEntry.pack()
         self.newStadiumNameEntry.focus()
 
-        self.dimensionEntryX = ttk.Entry(self, textvariable="X")
-        self.dimensionEntryY = ttk.Entry(self, textvariable="Y")
+        self.xDim = tk.StringVar()
+        self.yDim = tk.StringVar()
+        self.dimensionEntryX = ttk.Entry(self, textvariable=self.xDim)
+        self.dimensionEntryY = ttk.Entry(self, textvariable=self.yDim)
 
         self.dimensionEntryX.pack(side="left")
         self.dimensionEntryY.pack(side="right")
@@ -99,8 +103,8 @@ class CreateStadiumFrame(tk.Frame):
         Calls funtion to check in inputs are correct and calls App method to add the stadium
         """
         if self.CheckValues():
-            self.controller.AddStadiumFrame(self.newStadiumNameEntry.get(), int(self.dimensionEntryX.get()), int(self.dimensionEntryY.get()))
-            self.controller.show_frame(self.newStadiumNameEntry.get())
+            self.controller.AddStadiumFrame(self.stadiumName.get(), int(self.xDim.get()), int(self.yDim.get()))
+            self.controller.show_frame(self.stadiumName.get())
         else:
             self.ErrorLabel.pack(side="bottom")
     
@@ -108,17 +112,19 @@ class CreateStadiumFrame(tk.Frame):
         isGood = True
 
         # name must not be empty or just spaces
-        if self.newStadiumNameEntry.get().replace(" ", "") == "":
+        if self.stadiumName.get().replace(" ", "") == "":
             isGood = False
             self.newStadiumNameEntry.delete(0, "end")
+            print("ici")
         try:
             # dimensions must not be empty or NaN
-            self.dimensionX = int(self.dimensionEntryX.get())
-            self.dimensionY = int(self.dimensionEntryY.get())
+            self.dimensionX = int(self.xDim.get())
+            self.dimensionY = int(self.xDim.get())
         except:
             isGood = False
             self.dimensionEntryX.delete(0, 'end')
             self.dimensionEntryY.delete(0, 'end')
+            print("la")
             
         return isGood
     
