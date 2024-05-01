@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 from stades import Stade
 from scipy.ndimage import gaussian_filter
 
-class App(tk.Tk):
+class App(Tk):
 
     def __init__(self):
 
@@ -17,7 +17,7 @@ class App(tk.Tk):
         super().__init__()
 
         # creating a container
-        self.container = tk.Frame(self)  
+        self.container = tk.Frame(self)
         self.container.pack(side = "top", fill = "both", expand = True)
         
         # sets default window size
@@ -55,11 +55,15 @@ class HomeFrame(tk.Frame):
 
         tk.Frame.__init__(self, parent)
 
-        # reference to controller, might be usefull
-        self.controller = controller
+        # reference to controller main window, might be usefull
+        self.controller = controller        
 
-        self.createStadiumButton = ttk.Button(self, text="Creer un stade", command=lambda : self.controller.show_frame("CreateStadium"))
-        self.createStadiumButton.pack()
+        self.userId = tk.StringVar
+        self.idInput = ttk.Entry(self, textvariable=self.userId)
+        self.idInputLabel = ttk.Label(self, text="Identifiant :")
+
+        #self.createStadiumButton = ttk.Button(self, text="Creer un stade", command=lambda : self.controller.show_frame("CreateStadium"))
+        #self.createStadiumButton.grid(row=5, column=2, columnspan=3)
 
 class CreateStadiumFrame(tk.Frame):
 
@@ -115,7 +119,6 @@ class CreateStadiumFrame(tk.Frame):
         if self.stadiumName.get().replace(" ", "") == "":
             isGood = False
             self.newStadiumNameEntry.delete(0, "end")
-            print("ici")
         try:
             # dimensions must not be empty or NaN
             self.dimensionX = int(self.xDim.get())
@@ -124,7 +127,6 @@ class CreateStadiumFrame(tk.Frame):
             isGood = False
             self.dimensionEntryX.delete(0, 'end')
             self.dimensionEntryY.delete(0, 'end')
-            print("la")
             
         return isGood
     
@@ -150,6 +152,9 @@ class StadiumFrameTemplate(tk.Frame):
 
 
     def createGraph(self, data):
+        """
+        returns image to show
+        """
         imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
 
         matim.imsave("./temp.gitignore/tempGraph.png", imageData)

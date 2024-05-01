@@ -90,7 +90,6 @@ class Stade:
                 else:
                     listeTemp[o][k] = floor(temperature) 
                 
-        print(listeTemp)
         return(listeTemp)
 
     def soleil(self):
@@ -129,7 +128,7 @@ class Stade:
         Modifie la variable temperature 
         """
         #self.temperature1 = self.temperature() # temperature modifiée aléatoirement
-
+        print("starting modifying list")
         if self.gestionchauffage() == True :
              for k in range(len(self.temperature1)):
                   for i in range(len(self.temperature1[k])):
@@ -139,7 +138,7 @@ class Stade:
                   for i in range(len(self.temperature1[k])):
                         self.temperature1[k][i] = self.temperature1[k][i]-2
         
-        print(self.temperature1)
+        print("done modifying list")
 
 
     def getTemp(self):
