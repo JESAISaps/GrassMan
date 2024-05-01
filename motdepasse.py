@@ -1,15 +1,20 @@
 import sqlite3
-bdd = sqlite3.connect("./data/bddstade.db")
+bddstade = sqlite3.connect("./data/bddstade.db")
 
-idclient=input("identifiant")
-clientidentifiant=bdd.execute('SELECT identifiant from client')
+identifiant=input("identifiant")
+clientidentifiant=bddstade.execute('SELECT identifiant from client')
 
-if idclient in clientidentifiant:
-    print("kk")
-else:
-    bdd.execute('INSERT INTO nomclient ('+idclient+')')
+#if idclient in clientidentifiant:
+#    print("kk")
+#else:
+#    bddstade.execute('INSERT INTO nomclient ('+idclient+')')
                   
-nom=input("nom")
-prenom=input("prénom")
+nom=input("nom:")
+prenom=input("prénom:")
+stade=input("stade:")
+motdepasse=input("mot de passe:")
 
-bdd.commit
+bddstade.execute('INSERT INTO client ('+nom+', '+prenom+','+identifiant+','+stade+','+motdepasse+')')
+
+
+bddstade.commit()

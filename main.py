@@ -55,14 +55,35 @@ class HomeFrame(tk.Frame):
     def __init__(self, parent:tk.Frame, controller:App):
 
         tk.Frame.__init__(self, parent, highlightbackground="black", highlightthickness=1)
+        self.grid_rowconfigure(1)
+        self.grid_rowconfigure(2)
+        self.grid_rowconfigure(3)
+        self.grid_rowconfigure(4)
+        self.grid_rowconfigure(5)
+        self.grid_rowconfigure(6)
+        self.grid_rowconfigure(7)
+        self.grid_rowconfigure(8)
+        self.grid_rowconfigure(9)
 
+        self.grid_culumnconfigure(1)
+        self.grid_culumnconfigure(1)
+        self.grid_culumnconfigure(1)
+        self.grid_culumnconfigure(1)
+        self.grid_culumnconfigure(1)
+        self.grid_culumnconfigure(1)
+        self.grid_culumnconfigure(1)
+        self.grid_culumnconfigure(1)
+        self.grid_culumnconfigure(1)
+
+        print(self.grid_size())
         # reference to controller main window, might be usefull
         self.controller = controller        
+
         self.userId = tk.StringVar
         self.idInput = ttk.Entry(self, textvariable=self.userId)
         self.idInputLabel = ttk.Label(self, text="Identifiant :")
 
-        self.idInputLabel.grid()
+        self.idInputLabel.grid(column=50)
         self.idInput.grid()
 
         #self.createStadiumButton = ttk.Button(self, text="Creer un stade", command=lambda : self.controller.show_frame("CreateStadium"))
