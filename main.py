@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from matplotlib import image as matim
 import numpy as np
 from PIL import Image, ImageTk
+import motdepasse
 
 from stades import Stade
 from scipy.ndimage import gaussian_filter
@@ -28,7 +29,7 @@ class App(Tk):
         self.frames = {} # frames are the diferent pages you can open
 
         self.frames["HomeFrame"] = HomeFrame(self.container, self)
-        self.frames["HomeFrame"].grid(sticky="nswe")
+        self.frames["HomeFrame"].pack(expand=True)
         self.frames["CreateStadium"] = CreateStadiumFrame(self.container, self)
 
         self.activeFrame = "HomeFrame"
@@ -38,56 +39,52 @@ class App(Tk):
     def show_frame(self, cont):
 
         # remove current page
-        self.frames[self.activeFrame].grid_forget()
+        self.frames[self.activeFrame].pack_forget()
 
         # sets up new frame
         self.activeFrame = cont
         frame = self.frames[cont]
-        frame.grid(sticky="nswe")
+        frame.pack(expand=True)
         frame.tkraise()
 
     def AddStadiumFrame(self, name, *dimensions):
         self.frames[name] = StadiumFrameTemplate(self.container, self, name, *dimensions)
-        self.frames[name].grid(sticky="nswe")
+        self.frames[name].pack(expand=True)
 
 class HomeFrame(tk.Frame):
 
     def __init__(self, parent:tk.Frame, controller:App):
 
-        tk.Frame.__init__(self, parent, highlightbackground="black", highlightthickness=1)
-        self.grid_rowconfigure(1)
-        self.grid_rowconfigure(2)
-        self.grid_rowconfigure(3)
-        self.grid_rowconfigure(4)
-        self.grid_rowconfigure(5)
-        self.grid_rowconfigure(6)
-        self.grid_rowconfigure(7)
-        self.grid_rowconfigure(8)
-        self.grid_rowconfigure(9)
-
-        self.grid_culumnconfigure(1)
-        self.grid_culumnconfigure(1)
-        self.grid_culumnconfigure(1)
-        self.grid_culumnconfigure(1)
-        self.grid_culumnconfigure(1)
-        self.grid_culumnconfigure(1)
-        self.grid_culumnconfigure(1)
-        self.grid_culumnconfigure(1)
-        self.grid_culumnconfigure(1)
-
-        print(self.grid_size())
-        # reference to controller main window, might be usefull
+        tk.Frame.__init__(self, parent)
+        # reference to controller main window, might be usefulls
         self.controller = controller        
 
         self.userId = tk.StringVar
         self.idInput = ttk.Entry(self, textvariable=self.userId)
         self.idInputLabel = ttk.Label(self, text="Identifiant :")
 
-        self.idInputLabel.grid(column=50)
-        self.idInput.grid()
+        self.password = tk.StringVar
+        self.passwordInput = ttk.Entry(self, textvariable=self.password)
+        self.passwordInputLabel = ttk.Label(self, text="Mot de passe :")
+
+        self.idInputLabel.pack(side="top")
+        self.idInput.pack(side="top")
+
+        self.passwordInputLabel.pack(side="top",ipady=10)
+        self.passwordInput.pack(side="top")
+
+        self.confirmButton = ttk.Button(self, text="Confirmer", command= lambda : self.CheckLogin(self.userId, self.password))
+        self.confirmButton.pack(side="bottom")
 
         #self.createStadiumButton = ttk.Button(self, text="Creer un stade", command=lambda : self.controller.show_frame("CreateStadium"))
         #self.createStadiumButton.grid(row=5, column=2, columnspan=3)
+
+    def CheckLogin(self, id, psw):
+        if motdepasse.connection(id, psw):
+            pass
+            #TODO: connecter lutilisateur
+        else:
+            return
 
 class CreateStadiumFrame(tk.Frame):
 

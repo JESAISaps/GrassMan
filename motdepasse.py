@@ -1,20 +1,25 @@
 import sqlite3
-bddstade = sqlite3.connect("./data/bddstade.db")
-
-identifiant=input("identifiant")
-clientidentifiant=bddstade.execute('SELECT identifiant from client')
-
-#if idclient in clientidentifiant:
-#    print("kk")
-#else:
-#    bddstade.execute('INSERT INTO nomclient ('+idclient+')')
-                  
-nom=input("nom:")
-prenom=input("prénom:")
-stade=input("stade:")
-motdepasse=input("mot de passe:")
-
-bddstade.execute('INSERT INTO client ('+nom+', '+prenom+','+identifiant+','+stade+','+motdepasse+')')
+import bcrypt
 
 
-bddstade.commit()
+def connection(identifiant,mdp):
+    bdd = sqlite3.connect("./data/bddstade.db")
+    bddstade = bdd.cursor()
+
+    clientidentifiant=bddstade.execute('SELECT identifiant FROM client').fetchall()
+    knownIdList = [ligne[0] for ligne in clientidentifiant]
+    if identifiant in knownIdList:
+        vraimdp=bddstade.execute('SELECT motdepasse from client where identifiant = '+identifiant).fetchall()[0][0]
+        if bcrypt.checkpw(mdp, vraimdp):
+            return True
+        else:
+            return False
+    bdd.close()
+
+def nouveauclient(identifiant,nom,prenom,motdepasse,idstade):
+    bdd = sqlite3.connect("./data/bddstade.db")
+    bddstade = bdd.cursor()
+    bddstade.execute('INSERT INTO client values ("'+nom+'", "'+prenom+'","'+identifiant+'","'+str(idstade)+'","'+bcrypt.hashpw(motdepasse, bcrypt.gensalt())+'")')
+
+    bdd.commit()
+    bdd.close()
