@@ -22,12 +22,13 @@ class App(Tk):
         
         # sets default window size
         self.geometry("720x420")
+        self.resizable = False
 
         # initializing frames to an empty dict
         self.frames = {} # frames are the diferent pages you can open
 
         self.frames["HomeFrame"] = HomeFrame(self.container, self)
-        self.frames["HomeFrame"].grid()
+        self.frames["HomeFrame"].grid(sticky="nswe")
         self.frames["CreateStadium"] = CreateStadiumFrame(self.container, self)
 
         self.activeFrame = "HomeFrame"
@@ -42,25 +43,27 @@ class App(Tk):
         # sets up new frame
         self.activeFrame = cont
         frame = self.frames[cont]
-        frame.grid()
+        frame.grid(sticky="nswe")
         frame.tkraise()
 
     def AddStadiumFrame(self, name, *dimensions):
         self.frames[name] = StadiumFrameTemplate(self.container, self, name, *dimensions)
-        self.frames[name].grid()
+        self.frames[name].grid(sticky="nswe")
 
 class HomeFrame(tk.Frame):
 
     def __init__(self, parent:tk.Frame, controller:App):
 
-        tk.Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent, highlightbackground="black", highlightthickness=1)
 
         # reference to controller main window, might be usefull
         self.controller = controller        
-
         self.userId = tk.StringVar
         self.idInput = ttk.Entry(self, textvariable=self.userId)
         self.idInputLabel = ttk.Label(self, text="Identifiant :")
+
+        self.idInputLabel.grid()
+        self.idInput.grid()
 
         #self.createStadiumButton = ttk.Button(self, text="Creer un stade", command=lambda : self.controller.show_frame("CreateStadium"))
         #self.createStadiumButton.grid(row=5, column=2, columnspan=3)

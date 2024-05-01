@@ -4,7 +4,7 @@ import stades
 class BDD():
 
     def __init__(self) -> None:
-        self.bdd = sqlite3.connect("./data/bdd.db").cursor()
+        self.bdd = sqlite3.connect("./data/bddstade.db").cursor()
         self.stade = stades.Stade("Velodrome")
         self.Tmap=self.stade.getTemp()
         self.Meteo=self.stade.GetMeteo()
