@@ -57,7 +57,8 @@ class HomeFrame(tk.Frame):
 
         tk.Frame.__init__(self, parent)
         # reference to controller main window, might be usefulls
-        self.controller = controller        
+        self.controller = controller
+        self.parent = parent
 
         self.userId = tk.StringVar
         self.idInput = ttk.Entry(self, textvariable=self.userId)
@@ -79,12 +80,61 @@ class HomeFrame(tk.Frame):
         #self.createStadiumButton = ttk.Button(self, text="Creer un stade", command=lambda : self.controller.show_frame("CreateStadium"))
         #self.createStadiumButton.grid(row=5, column=2, columnspan=3)
 
+        self.AccountMenuSmall = AccountMenuFrameSmall(parent, controller, self)
+
+    def ToggleBigMenu(self):
+        self.AccountMenuBig = AccountMenuFrameBig(self.parent, self.controller)
+        
+
     def CheckLogin(self, id, psw):
         if motdepasse.connection(id, psw):
-            pass
+            print("Acces autorise")
             #TODO: connecter lutilisateur
-        else:
             return
+        else:
+            print("Hehe non")
+            return
+        
+class AccountMenuFrameSmall(tk.Frame):
+
+    def __init__(self, parent:tk.Frame, controller:App, homeFrame):
+
+        #Init frame
+        tk.Frame.__init__(self, parent, bg="green", highlightbackground="white", highlightthickness="1")
+
+        self.controller = controller
+        self.parent = parent
+
+        #s = ttk.Style()
+        #s.configure("MenuButton.TButton", foreground = "green", background = "green", font = 50)
+        #☰⇦
+        self.showMenuButton = tk.Button(self, text="☰", fg="white", bg="green", font=("Bold", 20), #faut esperer que le caractere existe sur l'ordi
+                                        activebackground="green", activeforeground="white", height=1,
+                                        command=lambda : homeFrame.ToggleBigMenu())
+        self.showMenuButton.pack(side="left")
+
+        # On colle le menu a droite
+        self.pack(side="right", fill=tk.Y)
+        self.pack_propagate(False)
+        self.configure(width=50)
+    
+
+class AccountMenuFrameBig(tk.Frame):
+    
+    def __init__(self, parent:tk.Frame, controller:App):
+
+        #Init frame
+        tk.Frame.__init__(self, parent, bg="green", highlightbackground="white", highlightthickness="1")
+        
+        menuWidth = 180 # controller.winfo_width()/4
+        print(menuWidth)
+
+        self.controller = controller        
+
+        self.pack(side="right", fill=tk.Y)
+        self.pack_propagate(False)
+        self.configure(width=menuWidth)
+
 
 class CreateStadiumFrame(tk.Frame):
 
