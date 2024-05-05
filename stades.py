@@ -3,11 +3,11 @@ from math import floor
 
 class Stade:
 
-    def __init__(self, nom:str, *dimensions) -> None:
+    def __init__(self, nom:str,saison,*dimensions) -> None:
         self.nom = nom
-        self.longeur = dimensions[0]
+        self.longueur = dimensions[0]
         self.largeur = dimensions[1]
-        self.temperature1 = self.CreateFirstTempMap()
+        self.temperature1 = self.CreateFirstTempMap(saison)
         self.ensoleillement = self.soleil()
         self.meteo = self.createMeteo()
         self.isRoofClosed = self.changeRoofState()
@@ -50,25 +50,28 @@ class Stade:
                             return True 
         return False
  
-    def CreateFirstTempMap(self):
+    def CreateFirstTempMap(self,saison):
         """
         Crée une matrice des temperatures
         Chaque élement représente 1 m carré
         crée de manière à être le plus réaliste possible, mais ne prend pas en compte
         la matrice précédente.
         """
-        listeTemp = self.createBlankStadium(self.longeur, self.largeur)
-        Temp0 = randint(-10,10)
+        listeTemp = self.createBlankStadium(self.longueur, self.largeur)
+        if saison=="hiver":
+             Temp0 = randint(-10,10)
+        elif saison=="automne" or saison=="printemps":
+             Temp0 = randint(10,20)
+        elif saison=="été":
+             Temp0 = randint(25,35)
+             
         listeTemp[0][0]=Temp0
-        
-        # tempMax limite la variation de temperature a 2 * la 
-        # temperature de depart sur l'ensemble du terrain
+
+        # tempMax limite la variation de temperature a 2 * la temperature de depart sur l'ensemble du terrain
         tempMax = abs(Temp0 +10)
         for o in range(len(listeTemp)):                
             for k in range(len(listeTemp[o])):
-                # on va faire une temperature qui depend de celles créées précédement, à proximité
-                # de l'element actuel
-                
+                # on va faire une temperature qui depend de celles créées précédement, à proximité de l'element actuel
                 # cas limites aux bord de la matrice
                 if o==0 and k==0:
                     temperature=Temp0
@@ -89,14 +92,24 @@ class Stade:
                     listeTemp[o][k] = floor(temperature) + .5
                 else:
                     listeTemp[o][k] = floor(temperature) 
-                
         return(listeTemp)
+    
+    def moyenneTemp(self,listetemperature):
+        somme = 0
+        nombre_valeurs = 0
+        for k in range(len(listetemperature)):
+            for valeur in range(len(listetemperature[k])):
+                somme=(somme+listetemperature[k][valeur])
+                nombre_valeurs = nombre_valeurs + 1
+        moyenne = somme/nombre_valeurs
+        return(moyenne)
+    
 
     def soleil(self):
         """
         Fonction qui va pas tarder a degager
         """
-        listeSoleil = self.createBlankStadium(self.longeur, self.largeur)
+        listeSoleil = self.createBlankStadium(self.longueur, self.largeur)
         for ligne in listeSoleil:
             for k in range(len(ligne)):
                     soleilHiver = randint(0,1)
@@ -128,7 +141,7 @@ class Stade:
         Modifie la variable temperature 
         """
         #self.temperature1 = self.temperature() # temperature modifiée aléatoirement
-        print("starting modifying list")
+        #print("starting modifying list")
         if self.gestionchauffage() == True :
              for k in range(len(self.temperature1)):
                   for i in range(len(self.temperature1[k])):
@@ -138,7 +151,7 @@ class Stade:
                   for i in range(len(self.temperature1[k])):
                         self.temperature1[k][i] = self.temperature1[k][i]-2
         
-        print("done modifying list")
+        #print("done modifying list")
 
 
     def getTemp(self):
@@ -163,7 +176,7 @@ class Stade:
         """
         retourne la variable taille du stade sous la forme d'un tuple
         """
-        return self.longeur, self.largeur
+        return self.longueur, self.largeur
     
     def GetMooveRoof(self):
         if self.meteo == "pluie" or self.meteo == "neige":
@@ -174,5 +187,7 @@ class Stade:
 
 # condition vraie seulement si ce script est celui qui a ete run, Faux si il est run dans un import
 if __name__ == "__main__":
-    s = Stade("Velodrome")
-    s.CreateFirstTemp()
+    s = Stade("Velodrome","hiver",*[50,100])
+    s.CreateFirstTempMap("hiver")
+
+    print(s.moyenneTemp(s.CreateFirstTempMap("hiver")))
