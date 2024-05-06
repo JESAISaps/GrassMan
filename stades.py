@@ -63,7 +63,7 @@ class Stade:
         elif saison=="automne" or saison=="printemps":
              Temp0 = randint(10,20)
         elif saison=="été":
-             Temp0 = randint(25,35)
+             Temp0 = randint(20,35)
              
         listeTemp[0][0]=Temp0
 
