@@ -3,42 +3,30 @@ import stades
 
 class BDD():
 
-    def __init__(self) -> None:
-        self.bdd = sqlite3.connect("./data/bddstade.db").cursor()
-        self.stade = stades.Stade("Velodrome")
+    def __init__(self,saison) -> None:
+        #self.bdd = sqlite3.connect("./data/bddstade.db")
+        self.stade = stades.Stade("Velodrome",saison,*[50,100])
         self.Tmap=self.stade.getTemp()
         self.Meteo=self.stade.GetMeteo()
         self.Lightmap=self.stade.GetSoleil()
+        #self.bdd.close()
 
-    def createbdd(self):
-        self.bdd.execute('CREATE TABLE Temperature (CoX INTEGER,CoY INTEGER,Temperature INTEGER NOT NULL,PRIMARY KEY (CoX,CoY))')
-        self.bdd.execute('CREATE TABLE Eclairage (CoX INTEGER,CoY INTEGER,Lumiere INTEGER NOT NULL,PRIMARY KEY (CoX,CoY))')
-        self.bdd.execute('CREATE TABLE Meteo (Meteo TEXT PRIMARY KEY);')
+#    def remplirtemp(self,listeTemp):
+
+    def remplircapteur(self):
+        self.bdd = sqlite3.connect("C:/Users/mar38/Documents/GitHub/GrassMan/data/bddstade.db")
+        longueur = self.stade.longueur
+        largeur = self.stade.largeur
+        nombrecapteur=longueur*largeur 
+        id=0 
+        for ligne in range(longueur):
+            for colonne in range(largeur):
+                self.bdd.execute("INSERT INTO Capteurs values ("+str(ligne)+","+str(colonne)+",1,"+str(id)+")")
+                id=id+1
         self.bdd.commit()
-        
-    def remplirbdd(self):
-        for k in range(len(self.Tmap)):
-            for i in range(len(self.Tmap[k])):
-                self.bdd.execute('INSERT INTO Temperature values ('+str(k)+','+str(i)+','+str(self.Tmap[k][i])+')')
-                self.bdd.commit()
-        for k in range(len(self.Lightmap)):
-            for i in range(len(self.Lightmap[k])):
-                self.bdd.execute('INSERT INTO Eclairage values ('+str(k)+','+str(i)+','+str(self.Lightmap[k][i])+')')
-                self.bdd.commit()
-    
-    def test(self):
-        for k in range(len(self.Tmap)):
-            for i in range(len(self.Tmap[k])):
-                print('INSERT INTO Temperature values ('+str(k)+','+str(i)+','+str(self.Tmap[k][i])+')')
-        for k in range(len(self.Lightmap)):
-            for i in range(len(self.Lightmap[k])):
-                self.bdd.execute('INSERT INTO Eclairage values ('+str(k)+','+str(i)+','+str(self.Lightmap[k][i])+')')
-
-
-
+        self.bdd.close()
 
 # condition vraie seulement si ce script est celui qui a ete run, Faux si il est run dans un import
 if __name__ == "__main__":
-    BDD1=BDD()
-    BDD1.test()
-
+    BDD1=BDD("hiver")
+    BDD1.remplircapteur()
