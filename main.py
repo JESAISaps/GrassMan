@@ -6,6 +6,7 @@ from matplotlib import image as matim
 import numpy as np
 from PIL import Image, ImageTk
 import motdepasse
+import sqlite3
 
 from stades import Stade
 from scipy.ndimage import gaussian_filter
@@ -70,18 +71,44 @@ class SideMenu(tk.Frame):
         tk.Frame.__init__(self, parent, bg='#32cd32',width=50,height=root.winfo_height())
         self.pack(side="right", fill=tk.Y)
 
-        self.passwordLabel = tk.Label(self, text="Mot de passe")
+        self.nameLabel = ttk.Label(self, text="Entrez votre prenom", background="#32cd32")
+        self.name = tk.StringVar()
+        self.nameEntry = ttk.Entry(self, textvariable=self.name)
+
+        self.name2Label = ttk.Label(self, text="Entrez votre nom : ", background="#32cd32")
+        self.name2 = tk.StringVar()
+        self.name2Entry = ttk.Entry(self, textvariable=self.name2)
+
+        self.idLabel = ttk.Label(self, text="Créez un identifiant : ", background="#32cd32")
+        self.id = tk.StringVar()
+        self.idEntry = ttk.Entry(self, textvariable=self.id)
+
+        self.passwordLabel1 = ttk.Label(self, text="Créez un mot de passe", background='#32cd32')
         # Creates the entries along with labels
         self.password1, self.password2 = tk.StringVar(), tk.StringVar()
         self.passwordEntry1 = ttk.Entry(self, textvariable=self.password1)
 
-        self.passwordLabel2 = tk.Label(self, text="Repetez le mot de passe")
+        self.passwordLabel2 = ttk.Label(self, text="Confirmez le mot de passe", background='#32cd32')
         self.passwordEntry2 = ttk.Entry(self, textvariable=self.password2)
 
-        self.passwordLabel.pack()
-        self.passwordEntry1.pack()
+        self.confirmButton = ttk.Button(self, text="Créer", command=lambda : self.CreateUser(self.id.get(), self.password1.get(), self.password2.get(), self.name.get(), self.name2.get()))
+
+        self.nameLabel.pack(side="top", pady=(20, 0))
+        self.nameEntry.pack(side="top", pady=(0, 10))
+
+        self.name2Label.pack(side="top", pady=(5, 0))
+        self.name2Entry.pack(side="top", pady=(0, 10))
+
+        self.idLabel.pack(side="top", pady=(10, 0))
+        self.idEntry.pack(side="top", pady=(0, 25))
+
+        self.passwordLabel1.pack(pady=(30, 0))
+        self.passwordEntry1.pack(pady=(0, 20))
+
         self.passwordLabel2.pack()
         self.passwordEntry2.pack()
+
+        self.confirmButton.pack(side="bottom")
 
         # Make the buttons with the icons to be shown
         #self.home_b = tk.Button(self,image=self.home,bg='#32cd32',relief='flat', activebackground='#349834')
@@ -94,7 +121,7 @@ class SideMenu(tk.Frame):
 
         # Bind to the frame, if entered or left
         self.bind('<Enter>',lambda e: self.expand())
-        self.bind('<Leave>',lambda e: self.contract())  
+        self.bind('<Leave>',lambda e: self.contract())
 
         # So that it does not depend on the widgets inside the frame
         self.pack_propagate(False)
@@ -109,7 +136,7 @@ class SideMenu(tk.Frame):
             self.fill()
 
     def contract(self):
-        self.cur_width -= 10 # Reduce the width by 10 
+        self.cur_width -= 10 # Reduce the width by 10
         self.rep = self.root.after(5,self.contract) # Call this func every 5 ms
         self.config(width=self.cur_width) # Change the width to new reduced width
         if self.cur_width <= self.min_w: # If it is back to normal width
@@ -130,6 +157,36 @@ class SideMenu(tk.Frame):
             self.home_b.config(image=self.home,font=(0,21))
             self.set_b.config(image=self.settings,font=(0,21))
             self.ring_b.config(image=self.ring,font=(0,21))
+
+    def MismachPassword(self):
+        self.passwordMismachErrorLabel = ttk.Label(self, text="Erreur dans la confirmation du \nmot de passe", background="red", justify="center")
+        self.passwordMismachErrorLabel.pack(side="bottom", pady=(0, 2))
+
+    def DuplacateId(self):
+        self.duplicateIdLabel = ttk.Label(self, text="Ce nom d'utilisateur existe déjà !", background="red", justify="center")
+        self.passwordMismachErrorLabel.pack(side="bottom", pady=(0, 2))
+
+    def UserCreated(self):
+        self.UserCreatedLabel = ttk.Label(self, text="Utilisateur créé avec succes,\nvous pouvez vous connecter.", background="green", justify="center")
+        self.UserCreatedLabel.pack(side="bottom", pady=(0, 2))
+    
+    def CreateUser(self, id, psw1, psw2, name, name2):   
+        if psw1 != psw2:
+            self.MismachPassword()
+            return
+        bdd = sqlite3.connect("./data/bddstade.db")
+
+        if motdepasse.CheckIfIdExists(bdd, self.id):
+            self.DuplacateId()
+            bdd.close()
+            return
+        
+        motdepasse.nouveauclient(bdd, id, name2, name, psw1)
+        bdd.commit()
+        bdd.close()
+        self.UserCreated()
+        
+
     
     
 
@@ -141,12 +198,13 @@ class HomeFrame(tk.Frame):
         # reference to controller main window, might be usefulls
         self.controller = controller
         self.parent = parent
-
-        self.userId = tk.StringVar
+        
+        self.resizable = False
+        self.userId = tk.StringVar()
         self.idInput = ttk.Entry(self, textvariable=self.userId)
         self.idInputLabel = ttk.Label(self, text="Identifiant :")
 
-        self.password = tk.StringVar
+        self.password = tk.StringVar()
         self.passwordInput = ttk.Entry(self, textvariable=self.password)
         self.passwordInputLabel = ttk.Label(self, text="Mot de passe :")
 
@@ -156,18 +214,21 @@ class HomeFrame(tk.Frame):
         self.passwordInputLabel.pack(side="top",ipady=10)
         self.passwordInput.pack(side="top")
 
-        self.confirmButton = ttk.Button(self, text="Confirmer", command= lambda : self.CheckLogin(self.userId, self.password))
+        self.confirmButton = ttk.Button(self, text="Confirmer", command= lambda : self.CheckLogin(self.userId.get(), self.password.get()))
         self.confirmButton.pack(side="bottom")
 
         self.SideMenu = SideMenu(parent, self)        
 
     def CheckLogin(self, id, psw):
-        if motdepasse.connection(id, psw):
+        bdd = sqlite3.connect("./data/bddstade.db")
+        if motdepasse.connection(bdd, id, psw):
             print("Acces autorise")
-            #TODO: connecter lutilisateur
+            #TODO: connecter l'utilisateur
+            bdd.close()
             return
         else:
             print("Hehe non")
+            bdd.close()
             return
 
 
@@ -177,6 +238,7 @@ class CreateStadiumFrame(tk.Frame):
 
         # initialises Frame
         tk.Frame.__init__(self, parent)
+        self.resizable = False
 
         self.controller = controller
 
@@ -242,6 +304,7 @@ class StadiumFrameTemplate(tk.Frame):
 
         # initialises Frame
         tk.Frame.__init__(self, parent)
+        self.resizable = False
 
         self.name = nomStade
 
