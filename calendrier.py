@@ -1,0 +1,2 @@
+def associerdateettemperature(date):
+    pass
