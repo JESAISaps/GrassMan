@@ -34,15 +34,6 @@ class App(Tk):
 
         self.activeFrame = "HomeFrame"
         self.frames[self.activeFrame].tkraise()
-
-        
-
-        
-        
-        #self.AccountMenuBig = AccountMenuFrameBig(self.container, self)
-        
-    def ToggleMenu(self):
-        self.AccountMenuBig = AccountMenuFrameBig(self.container, self)
         
     # to display the frame passed as parameter
     def show_frame(self, cont):
@@ -59,6 +50,88 @@ class App(Tk):
     def AddStadiumFrame(self, name, *dimensions):
         self.frames[name] = StadiumFrameTemplate(self.container, self, name, *dimensions)
         self.frames[name].pack(expand=True)
+
+class SideMenu(tk.Frame):
+
+    def __init__(self, parent, root):
+        self.root = root
+        self.min_w = 50 # Minimum width of the frame
+        self.max_w = 180 # Maximum width of the frame
+        self.cur_width = self.min_w # Increasing width of the frame
+        self.expanded = False # Check if it is completely exanded
+
+        # Define the icons to be shown and resize it
+        #self.home = ImageTk.PhotoImage(Image.open('home.png').resize((40,40)))
+        #self.settings = ImageTk.PhotoImage(Image.open('settings.png').resize((40,40)))
+        #self.ring = ImageTk.PhotoImage(Image.open('ring.png').resize((40,40)))   
+
+        self.root.update() # For the width to get updated
+
+        tk.Frame.__init__(self, parent, bg='#32cd32',width=50,height=root.winfo_height())
+        self.pack(side="right", fill=tk.Y)
+
+        self.passwordLabel = tk.Label(self, text="Mot de passe")
+        # Creates the entries along with labels
+        self.password1, self.password2 = tk.StringVar(), tk.StringVar()
+        self.passwordEntry1 = ttk.Entry(self, textvariable=self.password1)
+
+        self.passwordLabel2 = tk.Label(self, text="Repetez le mot de passe")
+        self.passwordEntry2 = ttk.Entry(self, textvariable=self.password2)
+
+        self.passwordLabel.pack()
+        self.passwordEntry1.pack()
+        self.passwordLabel2.pack()
+        self.passwordEntry2.pack()
+
+        # Make the buttons with the icons to be shown
+        #self.home_b = tk.Button(self,image=self.home,bg='#32cd32',relief='flat', activebackground='#349834')
+        #self.set_b = tk.Button(self, image=self.settings,bg='#32cd32',relief='flat', activebackground='#349834')
+        #self.ring_b = tk.Button(self,image=self.ring,bg='#32cd32',relief='flat', activebackground='#349834')
+
+        #self.home_b.pack(pady=10)
+        #self.set_b.pack(pady=50)
+        #self.ring_b.pack()
+
+        # Bind to the frame, if entered or left
+        self.bind('<Enter>',lambda e: self.expand())
+        self.bind('<Leave>',lambda e: self.contract())  
+
+        # So that it does not depend on the widgets inside the frame
+        self.pack_propagate(False)
+    
+    def expand(self):
+        self.cur_width += 10 # Increase the width by 10
+        self.rep = self.root.after(5,self.expand) # Repeat this func every 5 ms
+        self.config(width=self.cur_width) # Change the width to new increase width
+        if self.cur_width >= self.max_w: # If width is greater than maximum width 
+            self.expanded = True # Frame is expended
+            self.root.after_cancel(self.rep) # Stop repeating the func
+            self.fill()
+
+    def contract(self):
+        self.cur_width -= 10 # Reduce the width by 10 
+        self.rep = self.root.after(5,self.contract) # Call this func every 5 ms
+        self.config(width=self.cur_width) # Change the width to new reduced width
+        if self.cur_width <= self.min_w: # If it is back to normal width
+            self.expanded = False # Frame is not expanded
+            self.root.after_cancel(self.rep) # Stop repeating the func
+            self.fill()
+    
+    def fill(self):
+        if self.expanded: # If the frame is s
+            return
+            # Show a text, and remove the image
+            self.home_b.config(text='Home',image='',font=(0,21))
+            self.set_b.config(text='Settings',image='',font=(0,21))
+            self.ring_b.config(text='Bell Icon',image='',font=(0,21))
+        else:
+            return
+            # Bring the image back
+            self.home_b.config(image=self.home,font=(0,21))
+            self.set_b.config(image=self.settings,font=(0,21))
+            self.ring_b.config(image=self.ring,font=(0,21))
+    
+    
 
 class HomeFrame(tk.Frame):
 
@@ -86,26 +159,7 @@ class HomeFrame(tk.Frame):
         self.confirmButton = ttk.Button(self, text="Confirmer", command= lambda : self.CheckLogin(self.userId, self.password))
         self.confirmButton.pack(side="bottom")
 
-        #self.createStadiumButton = ttk.Button(self, text="Creer un stade", command=lambda : self.controller.show_frame("CreateStadium"))
-        #self.createStadiumButton.grid(row=5, column=2, columnspan=3)
-
-        #self.AccountMenuSmall = AccountMenuFrameSmall(parent, controller)
-        
-        #self.AccountMenuBig = AccountMenuFrameBig(parent, self.controller)
-        
-        self.AccountMenuSmall = AccountMenuFrameSmall(self.parent, self.controller, self)
-
-        self.AccountMenuSmall.pack(side="right", fill=tk.Y)
-        self.AccountMenuSmall.pack_propagate(False)
-        self.AccountMenuSmall.configure(width=50)
-
-
-    def ToggleAccountMenu(self):        
-        self.AccountMenuBig = AccountMenuFrameBig(self.parent, self.controller)
-        self.AccountMenuBig.pack(side="right", fill=tk.Y)
-        self.AccountMenuBig.pack_propagate(False)
-        self.AccountMenuBig.configure(width=180)
-        
+        self.SideMenu = SideMenu(parent, self)        
 
     def CheckLogin(self, id, psw):
         if motdepasse.connection(id, psw):
@@ -115,50 +169,6 @@ class HomeFrame(tk.Frame):
         else:
             print("Hehe non")
             return
-        
-class AccountMenuFrameSmall(tk.Frame):
-
-    def __init__(self, parent:tk.Frame, controller:App, parentFrame):
-
-        #Init frame
-        tk.Frame.__init__(self, parent, bg="green", highlightbackground="white", highlightthickness="1")
-
-        self.controller = controller
-        self.parent = parent
-        #s = ttk.Style()
-        #s.configure("MenuButton.TButton", foreground = "green", background = "green", font = 50)
-        #☰⇦
-        self.showMenuButton = tk.Button(self, text="☰", fg="white", bg="green", font=("Bold", 20), #faut esperer que le caractere existe sur l'ordi
-                                        activebackground="green", activeforeground="white", height=1,
-                                        command=parentFrame.ToggleAccountMenu)
-        self.showMenuButton.pack(side="left")
-
-        # On colle le menu a droite
-        #self.pack(side="right", fill=tk.Y)
-        #self.pack_propagate(False)
-        #self.configure(width=50)
-    
-
-class AccountMenuFrameBig(tk.Frame):
-    
-    def __init__(self, parent:tk.Frame, controller:App):
-
-        #Init frame
-        tk.Frame.__init__(self, parent, bg="green", highlightbackground="white", highlightthickness="1")
-        
-        self.menuWidth = 180 # controller.winfo_width()/4
-        print(self.menuWidth)
-
-        self.controller = controller
-        #self.pack(side="right", fill=tk.Y)
-        #self.pack_propagate(False)
-        #self.configure(width=self.menuWidth)
-    
-    #def ToggleMenu(self):
-    #    
-    #    self.configure(width=180 - self.menuWidth)
-    #    self.menuWidth = 180 - self.menuWidth
-    #    print(self.menuWidth)
 
 
 class CreateStadiumFrame(tk.Frame):
