@@ -64,7 +64,9 @@ class SideMenu(tk.Frame):
         # Define the icons to be shown and resize it
         #self.home = ImageTk.PhotoImage(Image.open('home.png').resize((40,40)))
         #self.settings = ImageTk.PhotoImage(Image.open('settings.png').resize((40,40)))
-        #self.ring = ImageTk.PhotoImage(Image.open('ring.png').resize((40,40)))   
+        #self.ring = ImageTk.PhotoImage(Image.open('ring.png').resize((40,40)))
+
+        self.plusImage = ImageTk.PhotoImage(Image.open("./data/images/plus.png").resize((40, 40)))
 
         self.root.update() # For the width to get updated
 
@@ -91,33 +93,39 @@ class SideMenu(tk.Frame):
         self.passwordLabel2 = ttk.Label(self, text="Confirmez le mot de passe", background='#32cd32')
         self.passwordEntry2 = ttk.Entry(self, textvariable=self.password2)
 
+        self.isLocked = tk.BooleanVar()
+        self.lockMenuButton = ttk.Checkbutton(self, variable=self.isLocked, text="Bloquer le menu")
+
         self.confirmButton = ttk.Button(self, text="Créer", command=lambda : self.CreateUser(self.id.get(), self.password1.get(), self.password2.get(), self.name.get(), self.name2.get()))
 
-        self.nameLabel.pack(side="top", pady=(20, 0))
-        self.nameEntry.pack(side="top", pady=(0, 10))
-
-        self.name2Label.pack(side="top", pady=(5, 0))
-        self.name2Entry.pack(side="top", pady=(0, 10))
-
-        self.idLabel.pack(side="top", pady=(10, 0))
-        self.idEntry.pack(side="top", pady=(0, 25))
-
-        self.passwordLabel1.pack(pady=(30, 0))
-        self.passwordEntry1.pack(pady=(0, 20))
-
-        self.passwordLabel2.pack()
-        self.passwordEntry2.pack()
-
-        self.confirmButton.pack(side="bottom")
+        #self.nameLabel.pack(side="top", pady=(20, 0))
+        #self.nameEntry.pack(side="top", pady=(0, 10))
+#
+        #self.name2Label.pack(side="top", pady=(5, 0))
+        #self.name2Entry.pack(side="top", pady=(0, 10))
+#
+        #self.idLabel.pack(side="top", pady=(10, 0))
+        #self.idEntry.pack(side="top", pady=(0, 25))
+#
+        #self.passwordLabel1.pack(pady=(30, 0))
+        #self.passwordEntry1.pack(pady=(0, 20))
+#
+        #self.passwordLabel2.pack()
+        #self.passwordEntry2.pack()
+#
+        #self.confirmButton.pack(side="bottom")
 
         # Make the buttons with the icons to be shown
         #self.home_b = tk.Button(self,image=self.home,bg='#32cd32',relief='flat', activebackground='#349834')
         #self.set_b = tk.Button(self, image=self.settings,bg='#32cd32',relief='flat', activebackground='#349834')
         #self.ring_b = tk.Button(self,image=self.ring,bg='#32cd32',relief='flat', activebackground='#349834')
 
+        self.plusImageObject = tk.Label(self, image=self.plusImage)
+
         #self.home_b.pack(pady=10)
         #self.set_b.pack(pady=50)
         #self.ring_b.pack()
+        self.plusImageObject.pack(fill="none", expand=True)
 
         # Bind to the frame, if entered or left
         self.bind('<Enter>',lambda e: self.expand())
@@ -127,6 +135,9 @@ class SideMenu(tk.Frame):
         self.pack_propagate(False)
     
     def expand(self):
+        if(self.expanded):
+            return
+        
         self.cur_width += 10 # Increase the width by 10
         self.rep = self.root.after(5,self.expand) # Repeat this func every 5 ms
         self.config(width=self.cur_width) # Change the width to new increase width
@@ -136,6 +147,9 @@ class SideMenu(tk.Frame):
             self.fill()
 
     def contract(self):
+        if(self.isLocked.get()):
+            return
+
         self.cur_width -= 10 # Reduce the width by 10
         self.rep = self.root.after(5,self.contract) # Call this func every 5 ms
         self.config(width=self.cur_width) # Change the width to new reduced width
@@ -145,18 +159,55 @@ class SideMenu(tk.Frame):
             self.fill()
     
     def fill(self):
-        if self.expanded: # If the frame is s
-            return
-            # Show a text, and remove the image
-            self.home_b.config(text='Home',image='',font=(0,21))
-            self.set_b.config(text='Settings',image='',font=(0,21))
-            self.ring_b.config(text='Bell Icon',image='',font=(0,21))
+        if self.expanded: # If the frame is extended
+            # Show everything, hide image
+            self.plusImageObject.pack_forget()
+
+            self.nameLabel.pack(side="top", pady=(20, 0))
+            self.nameEntry.pack(side="top", pady=(0, 10))
+
+            self.name2Label.pack(side="top", pady=(5, 0))
+            self.name2Entry.pack(side="top", pady=(0, 10))
+
+            self.idLabel.pack(side="top", pady=(10, 0))
+            self.idEntry.pack(side="top", pady=(0, 25))
+
+            self.passwordLabel1.pack(pady=(30, 0))
+            self.passwordEntry1.pack(pady=(0, 20))
+
+            self.passwordLabel2.pack()
+            self.passwordEntry2.pack()
+
+            self.lockMenuButton.pack()
+            self.confirmButton.pack(side="bottom")
+            #self.home_b.config(text='Home',image='',font=(0,21))
+            #self.set_b.config(text='Settings',image='',font=(0,21))
+            #self.ring_b.config(text='Bell Icon',image='',font=(0,21))
         else:
-            return
+
+            self.nameLabel.pack_forget()
+            self.nameEntry.pack_forget()
+
+            self.name2Label.pack_forget()
+            self.name2Entry.pack_forget()
+
+            self.idLabel.pack_forget()
+            self.idEntry.pack_forget()
+
+            self.passwordLabel1.pack_forget()
+            self.passwordEntry1.pack_forget()
+
+            self.passwordLabel2.pack_forget()
+            self.passwordEntry2.pack_forget()
+
+            self.lockMenuButton.pack_forget()
+            self.confirmButton.pack_forget()
+
+            self.plusImageObject.pack(fill="none", expand=True)
             # Bring the image back
-            self.home_b.config(image=self.home,font=(0,21))
-            self.set_b.config(image=self.settings,font=(0,21))
-            self.ring_b.config(image=self.ring,font=(0,21))
+            #self.home_b.config(image=self.home,font=(0,21))
+            #self.set_b.config(image=self.settings,font=(0,21))
+            #self.ring_b.config(image=self.ring,font=(0,21))
 
     def MismachPassword(self):
         self.passwordMismachErrorLabel = ttk.Label(self, text="Erreur dans la confirmation du \nmot de passe", background="red", justify="center")
@@ -170,19 +221,17 @@ class SideMenu(tk.Frame):
         self.UserCreatedLabel = ttk.Label(self, text="Utilisateur créé avec succes,\nvous pouvez vous connecter.", background="green", justify="center")
         self.UserCreatedLabel.pack(side="bottom", pady=(0, 2))
     
-    def CreateUser(self, id, psw1, psw2, name, name2):   
+    def CreateUser(self, id, psw1, psw2, name, name2):        
+        bdd = sqlite3.connect("./data/bddstade.db")  
         if psw1 != psw2:
             self.MismachPassword()
-            return
-        bdd = sqlite3.connect("./data/bddstade.db")
-
-        if motdepasse.CheckIfIdExists(bdd, self.id):
+        elif motdepasse.CheckIfIdExists(bdd, self.id):
             self.DuplacateId()
-            bdd.close()
-            return
+        else:
         
-        motdepasse.nouveauclient(bdd, id, name2, name, psw1)
-        bdd.commit()
+            motdepasse.nouveauclient(bdd, id, name2, name, psw1)
+            bdd.commit()
+
         bdd.close()
         self.UserCreated()
         
