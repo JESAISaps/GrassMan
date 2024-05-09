@@ -61,11 +61,7 @@ class SideMenu(tk.Frame):
         self.cur_width = self.min_w # Increasing width of the frame
         self.expanded = False # Check if it is completely exanded
 
-        # Define the icons to be shown and resize it
-        #self.home = ImageTk.PhotoImage(Image.open('home.png').resize((40,40)))
-        #self.settings = ImageTk.PhotoImage(Image.open('settings.png').resize((40,40)))
-        #self.ring = ImageTk.PhotoImage(Image.open('ring.png').resize((40,40)))
-
+        # Define the icon to be shown and resize it
         self.plusImage = ImageTk.PhotoImage(Image.open("./data/images/plus.png").resize((40, 40)))
 
         self.root.update() # For the width to get updated
@@ -98,33 +94,9 @@ class SideMenu(tk.Frame):
 
         self.confirmButton = ttk.Button(self, text="Créer", command=lambda : self.CreateUser(self.id.get(), self.password1.get(), self.password2.get(), self.name.get(), self.name2.get()))
 
-        #self.nameLabel.pack(side="top", pady=(20, 0))
-        #self.nameEntry.pack(side="top", pady=(0, 10))
-#
-        #self.name2Label.pack(side="top", pady=(5, 0))
-        #self.name2Entry.pack(side="top", pady=(0, 10))
-#
-        #self.idLabel.pack(side="top", pady=(10, 0))
-        #self.idEntry.pack(side="top", pady=(0, 25))
-#
-        #self.passwordLabel1.pack(pady=(30, 0))
-        #self.passwordEntry1.pack(pady=(0, 20))
-#
-        #self.passwordLabel2.pack()
-        #self.passwordEntry2.pack()
-#
-        #self.confirmButton.pack(side="bottom")
-
-        # Make the buttons with the icons to be shown
-        #self.home_b = tk.Button(self,image=self.home,bg='#32cd32',relief='flat', activebackground='#349834')
-        #self.set_b = tk.Button(self, image=self.settings,bg='#32cd32',relief='flat', activebackground='#349834')
-        #self.ring_b = tk.Button(self,image=self.ring,bg='#32cd32',relief='flat', activebackground='#349834')
-
         self.plusImageObject = tk.Label(self, image=self.plusImage)
 
-        #self.home_b.pack(pady=10)
-        #self.set_b.pack(pady=50)
-        #self.ring_b.pack()
+
         self.plusImageObject.pack(fill="none", expand=True)
 
         # Bind to the frame, if entered or left
@@ -160,6 +132,7 @@ class SideMenu(tk.Frame):
     
     def fill(self):
         if self.expanded: # If the frame is extended
+
             # Show everything, hide image
             self.plusImageObject.pack_forget()
 
@@ -180,11 +153,8 @@ class SideMenu(tk.Frame):
 
             self.lockMenuButton.pack()
             self.confirmButton.pack(side="bottom")
-            #self.home_b.config(text='Home',image='',font=(0,21))
-            #self.set_b.config(text='Settings',image='',font=(0,21))
-            #self.ring_b.config(text='Bell Icon',image='',font=(0,21))
         else:
-
+            # hide everything
             self.nameLabel.pack_forget()
             self.nameEntry.pack_forget()
 
@@ -203,37 +173,35 @@ class SideMenu(tk.Frame):
             self.lockMenuButton.pack_forget()
             self.confirmButton.pack_forget()
 
-            self.plusImageObject.pack(fill="none", expand=True)
             # Bring the image back
-            #self.home_b.config(image=self.home,font=(0,21))
-            #self.set_b.config(image=self.settings,font=(0,21))
-            #self.ring_b.config(image=self.ring,font=(0,21))
+            self.plusImageObject.pack(fill="none", expand=True)
 
     def MismachPassword(self):
         self.passwordMismachErrorLabel = ttk.Label(self, text="Erreur dans la confirmation du \nmot de passe", background="red", justify="center")
         self.passwordMismachErrorLabel.pack(side="bottom", pady=(0, 2))
+        self.after(2000, self.MismachPassword.destroy)
 
     def DuplacateId(self):
         self.duplicateIdLabel = ttk.Label(self, text="Ce nom d'utilisateur existe déjà !", background="red", justify="center")
-        self.passwordMismachErrorLabel.pack(side="bottom", pady=(0, 2))
+        self.duplicateIdLabel.pack(side="bottom", pady=(0, 2))        
+        self.after(2000, self.duplicateIdLabel.destroy)
 
     def UserCreated(self):
         self.UserCreatedLabel = ttk.Label(self, text="Utilisateur créé avec succes,\nvous pouvez vous connecter.", background="green", justify="center")
         self.UserCreatedLabel.pack(side="bottom", pady=(0, 2))
+        self.after(2000, self.UserCreatedLabel.destroy)
     
     def CreateUser(self, id, psw1, psw2, name, name2):        
-        bdd = sqlite3.connect("./data/bddstade.db")  
+        bdd = sqlite3.connect("./data/bddstade.db")
         if psw1 != psw2:
             self.MismachPassword()
-        elif motdepasse.CheckIfIdExists(bdd, self.id):
+        elif motdepasse.CheckIfIdExists(bdd, self.id.get()):
             self.DuplacateId()
-        else:
-        
+        else:        
             motdepasse.nouveauclient(bdd, id, name2, name, psw1)
             bdd.commit()
-
+            self.UserCreated()
         bdd.close()
-        self.UserCreated()
         
 
     

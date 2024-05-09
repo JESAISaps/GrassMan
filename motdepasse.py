@@ -25,9 +25,10 @@ def CheckIfIdExists(bdd, id):
     bddstade = bdd.cursor()
 
     clientidentifiant=bddstade.execute('SELECT identifiant FROM client').fetchall()
-    print(clientidentifiant)
+    #print(clientidentifiant)
     knownIdList = [ligne[0] for ligne in clientidentifiant]
-    print(knownIdList)
+    #print(knownIdList)
+    #print(id)
     if id in knownIdList:
         return True
     return False
