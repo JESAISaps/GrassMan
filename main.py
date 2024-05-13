@@ -147,7 +147,7 @@ class HomeFrame(tk.Frame):
         self.idInputLabel = ttk.Label(self, text="Identifiant :")
 
         self.password = tk.StringVar
-        self.passwordInput = ttk.Entry(self, textvariable=self.password)
+        self.passwordInput = ttk.Entry(self, textvariable=self.password, show="*")
         self.passwordInputLabel = ttk.Label(self, text="Mot de passe :")
 
         self.idInputLabel.pack(side="top")
