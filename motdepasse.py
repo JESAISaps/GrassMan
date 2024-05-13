@@ -2,24 +2,49 @@ import sqlite3
 import bcrypt
 
 
-def connection(identifiant,mdp):
-    bdd = sqlite3.connect("./data/bddstade.db")
+def connection(bdd, id,mdp):
+    #bdd = sqlite3.connect("./data/bddstade.db")
     bddstade = bdd.cursor()
 
-    clientidentifiant=bddstade.execute('SELECT identifiant FROM client').fetchall()
-    knownIdList = [ligne[0] for ligne in clientidentifiant]
-    if identifiant in knownIdList:
-        vraimdp=bddstade.execute('SELECT motdepasse from client where identifiant = '+identifiant).fetchall()[0][0]
-        if bcrypt.checkpw(mdp, vraimdp):
+    if CheckIfIdExists(bdd, id):
+        command = "SELECT motdepasse FROM client WHERE identifiant = '{identifiant}';"
+        #print(command)
+        vraimdp=bddstade.execute(command.format(identifiant=id)).fetchall()[0][0]
+        #print(mdp.encode("utf-8"))
+        #print(vraimdp.encode("utf-8"))
+        if bcrypt.checkpw(mdp.encode("utf-8"), vraimdp.encode("utf-8")):
             return True
         else:
             return False
-    bdd.close()
+    return None
+        
+    #bdd.close()
 
-def nouveauclient(identifiant,nom,prenom,motdepasse,idstade):
-    bdd = sqlite3.connect("./data/bddstade.db")
+def CheckIfIdExists(bdd, id):
+    #bdd = sqlite3.connect("./data/bddstade.db")
     bddstade = bdd.cursor()
-    bddstade.execute('INSERT INTO client values ("'+nom+'", "'+prenom+'","'+identifiant+'","'+str(idstade)+'","'+bcrypt.hashpw(motdepasse, bcrypt.gensalt())+'")')
 
-    bdd.commit()
-    bdd.close()
+    clientidentifiant=bddstade.execute('SELECT identifiant FROM client').fetchall()
+    #print(clientidentifiant)
+    knownIdList = [ligne[0] for ligne in clientidentifiant]
+    #print(knownIdList)
+    #print(id)
+    if id in knownIdList:
+        return True
+    return False
+
+def nouveauclient(bdd, id,name,name1,motdepasse):
+    #bdd = sqlite3.connect("./data/bddstade.db")
+    psw = motdepasse.encode("utf-8")
+    bddstade = bdd.cursor()
+    command = "INSERT INTO client VALUES ('{nom}', '{prenom}','{identifiant}','{password}');"
+    #print(command.format(nom=name1, prenom=name, identifiant=id, password=str(bcrypt.hashpw(psw, bcrypt.gensalt()))[2:-1]))
+    bddstade.execute(command.format(nom=name1, prenom=name, identifiant=id, password=str(bcrypt.hashpw(psw, bcrypt.gensalt()))[2:-1]))
+    #bdd.close()
+
+if __name__ == "__main__":
+    password = "HelloWorld".encode("utf-8")
+    hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+    command = f"{hashed}"
+    print(hashed, type(hashed))
+    print(command)
