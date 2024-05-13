@@ -32,12 +32,15 @@ class App(Tk):
         self.frames["HomeFrame"] = HomeFrame(self.container, self)
         self.frames["HomeFrame"].pack(expand=True)
         self.frames["CreateStadium"] = CreateStadiumFrame(self.container, self)
+        self.frames["StadiumList"] = StadiumListFrame(self.container, self)
 
         self.activeFrame = "HomeFrame"
         self.frames[self.activeFrame].tkraise()
+
+        self.resizable = False
         
     # to display the frame passed as parameter
-    def show_frame(self, cont):
+    def show_frame(self, cont:str):
 
         # remove current page
         self.frames[self.activeFrame].pack_forget()
@@ -51,6 +54,7 @@ class App(Tk):
     def AddStadiumFrame(self, name, *dimensions):
         self.frames[name] = StadiumFrameTemplate(self.container, self, name, *dimensions)
         self.frames[name].pack(expand=True)
+
 
 class SideMenu(tk.Frame):
 
@@ -84,17 +88,17 @@ class SideMenu(tk.Frame):
         self.passwordLabel1 = ttk.Label(self, text="Créez un mot de passe", background='#32cd32')
         # Creates the entries along with labels
         self.password1, self.password2 = tk.StringVar(), tk.StringVar()
-        self.passwordEntry1 = ttk.Entry(self, textvariable=self.password1)
+        self.passwordEntry1 = ttk.Entry(self, textvariable=self.password1, show="•")
 
         self.passwordLabel2 = ttk.Label(self, text="Confirmez le mot de passe", background='#32cd32')
-        self.passwordEntry2 = ttk.Entry(self, textvariable=self.password2)
+        self.passwordEntry2 = ttk.Entry(self, textvariable=self.password2, show="•")
 
         self.isLocked = tk.BooleanVar()
         self.lockMenuButton = ttk.Checkbutton(self, variable=self.isLocked, text="Bloquer le menu")
 
         self.confirmButton = ttk.Button(self, text="Créer", command=lambda : self.CreateUser(self.id.get(), self.password1.get(), self.password2.get(), self.name.get(), self.name2.get()))
 
-        self.plusImageObject = tk.Label(self, image=self.plusImage)
+        self.plusImageObject = tk.Label(self, image=self.plusImage, bg="#32cd32")
 
 
         self.plusImageObject.pack(fill="none", expand=True)
@@ -179,7 +183,7 @@ class SideMenu(tk.Frame):
     def MismachPassword(self):
         self.passwordMismachErrorLabel = ttk.Label(self, text="Erreur dans la confirmation du \nmot de passe", background="red", justify="center")
         self.passwordMismachErrorLabel.pack(side="bottom", pady=(0, 2))
-        self.after(2000, self.MismachPassword.destroy)
+        self.after(2000, self.passwordMismachErrorLabel.destroy)
 
     def DuplacateId(self):
         self.duplicateIdLabel = ttk.Label(self, text="Ce nom d'utilisateur existe déjà !", background="red", justify="center")
@@ -204,9 +208,6 @@ class SideMenu(tk.Frame):
         bdd.close()
         
 
-    
-    
-
 class HomeFrame(tk.Frame):
 
     def __init__(self, parent:tk.Frame, controller:App):
@@ -222,7 +223,7 @@ class HomeFrame(tk.Frame):
         self.idInputLabel = ttk.Label(self, text="Identifiant :")
 
         self.password = tk.StringVar()
-        self.passwordInput = ttk.Entry(self, textvariable=self.password)
+        self.passwordInput = ttk.Entry(self, textvariable=self.password, show="•")
         self.passwordInputLabel = ttk.Label(self, text="Mot de passe :")
 
         self.idInputLabel.pack(side="top")
@@ -238,6 +239,12 @@ class HomeFrame(tk.Frame):
 
     def CheckLogin(self, id, psw):
         bdd = sqlite3.connect("./data/bddstade.db")
+
+        #pour test des menus
+        if id == "azerty":
+            self.controller.show_frame("StadiumList")
+            return
+
         if motdepasse.connection(bdd, id, psw):
             print("Acces autorise")
             #TODO: connecter l'utilisateur
@@ -314,7 +321,8 @@ class CreateStadiumFrame(tk.Frame):
             self.dimensionEntryY.delete(0, 'end')
             
         return isGood
-    
+
+
 class StadiumFrameTemplate(tk.Frame):
 
     def __init__(self, parent:tk.Frame, controller:App, nomStade:str, *dimentions):
@@ -364,10 +372,30 @@ class StadiumFrameTemplate(tk.Frame):
         self.graphLabel = tk.Label(self, image=self.graphImage)  
         self.graphLabel.pack(side="left")
 
+class StadiumListFrame(tk.Frame):
+
+    def __init__(self, parent, root):
+        self.root = root
+
+        tk.Frame.__init__(self, parent)
+
+        self.text = tk.Text(self, wrap="none")
+        self.text.pack(side="left", padx=100, pady=100)
+        self.sb = tk.Scrollbar(self, command=self.text.yview)
+        self.sb.pack(side="right")
+        self.text.configure(yscrollcommand=self.sb.set)
+
+        for i in range(1, 21):
+            button = ttk.Button(self.text, text=str(i))
+            self.text.window_create("end", window=button)
+            self.text.insert("end", "\n")
+        self.text.configure(state="disabled")
+        
 if __name__ == "__main__":
 
     #App = StadiumFrameTemplate("Velodrome", 100, 50)
     #App.mainloop()
 
     palala = App()
+    palala.resizable = False
     palala.mainloop()
