@@ -236,7 +236,6 @@ class HomeFrame(tk.Frame):
 
     def CheckLogin(self, id, psw):
         bdd = sqlite3.connect("./data/bddstade.db")
-
         #pour test des menus
         if id == "azerty":
             self.controller.show_frame("StadiumList")
