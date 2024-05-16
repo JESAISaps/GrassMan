@@ -5,8 +5,9 @@ from matplotlib import pyplot as plt
 from matplotlib import image as matim
 import numpy as np
 from PIL import Image, ImageTk
-import motdepasse
+import BDDapi
 import sqlite3
+import functools
 
 from stades import Stade
 from scipy.ndimage import gaussian_filter
@@ -24,7 +25,7 @@ class App(Tk):
         
         # sets default window size
         self.geometry("720x420")
-        self.resizable = False
+        self.resizable(False, False)
 
         # initializing frames to an empty dict
         self.frames = {} # frames are the diferent pages you can open
@@ -36,8 +37,6 @@ class App(Tk):
 
         self.activeFrame = "HomeFrame"
         self.frames[self.activeFrame].tkraise()
-
-        self.resizable = False
         
     # to display the frame passed as parameter
     def show_frame(self, cont:str):
@@ -199,10 +198,10 @@ class SideMenu(tk.Frame):
         bdd = sqlite3.connect("./data/bddstade.db")
         if psw1 != psw2:
             self.MismachPassword()
-        elif motdepasse.CheckIfIdExists(bdd, self.id.get()):
+        elif BDDapi.CheckIfIdExists(bdd, self.id.get()):
             self.DuplacateId()
         else:        
-            motdepasse.nouveauclient(bdd, id, name2, name, psw1)
+            BDDapi.nouveauclient(bdd, id, name2, name, psw1)
             bdd.commit()
             self.UserCreated()
         bdd.close()
@@ -216,8 +215,6 @@ class HomeFrame(tk.Frame):
         # reference to controller main window, might be usefulls
         self.controller = controller
         self.parent = parent
-        
-        self.resizable = False
         self.userId = tk.StringVar()
         self.idInput = ttk.Entry(self, textvariable=self.userId)
         self.idInputLabel = ttk.Label(self, text="Identifiant :")
@@ -245,7 +242,7 @@ class HomeFrame(tk.Frame):
             self.controller.show_frame("StadiumList")
             return
 
-        if motdepasse.connection(bdd, id, psw):
+        if BDDapi.connection(bdd, id, psw):
             print("Acces autorise")
             #TODO: connecter l'utilisateur
             bdd.close()
@@ -262,7 +259,6 @@ class CreateStadiumFrame(tk.Frame):
 
         # initialises Frame
         tk.Frame.__init__(self, parent)
-        self.resizable = False
 
         self.controller = controller
 
@@ -329,7 +325,6 @@ class StadiumFrameTemplate(tk.Frame):
 
         # initialises Frame
         tk.Frame.__init__(self, parent)
-        self.resizable = False
 
         self.name = nomStade
 
@@ -379,17 +374,40 @@ class StadiumListFrame(tk.Frame):
 
         tk.Frame.__init__(self, parent)
 
-        self.text = tk.Text(self, wrap="none")
-        self.text.pack(side="left", padx=100, pady=100)
-        self.sb = tk.Scrollbar(self, command=self.text.yview)
-        self.sb.pack(side="right")
-        self.text.configure(yscrollcommand=self.sb.set)
+        #self.text = tk.Text(self, wrap="none")
+        #self.text.pack(side="left", padx=100, pady=100)
+        #self.sb = tk.Scrollbar(self, command=self.text.yview)
+        #self.sb.pack(side="right")
+        #self.text.configure(yscrollcommand=self.sb.set)
 
-        for i in range(1, 21):
-            button = ttk.Button(self.text, text=str(i))
-            self.text.window_create("end", window=button)
-            self.text.insert("end", "\n")
-        self.text.configure(state="disabled")
+        #for i in range(1, 21):
+        #    button = ttk.Button(self.text, text=str(i))
+        #    self.text.window_create("end", window=button)
+        #    self.text.insert("end", "\n")
+        #self.text.configure(state="disabled")
+
+        self.canvas_container=tk.Canvas(self, height=200)
+        self.frame2=ttk.Frame(self.canvas_container)
+        self.myscrollbar=ttk.Scrollbar(self,orient="vertical",command=self.canvas_container.yview) # will be visible if the frame2 is to to big for the canvas
+        self.canvas_container.create_window((0,0),window=self.frame2,anchor='nw')
+        
+        self.canvas_container.configure(yscrollcommand=self.myscrollbar.set)#, scrollregion="0 0 0 %s" % self.frame2.winfo_height()) # the scrollregion mustbe the size of the frame inside it,
+                                                                                                                    #in this case "x=0 y=0 width=0 height=frame2height"
+        
+        self.canvas_container.bind('<Configure>', lambda e: self.canvas_container.configure(scrollregion=self.canvas_container.bbox("all")))
+
+        def func(name):
+            print (name)
+
+        self.mylist = ['item1','item2','item3','item4','item5','item6','item7','item8','item9', "10", "11", "12", "13"]
+        for item in self.mylist:
+            self.button = ttk.Button(self.frame2,text=item,command=functools.partial(func,item))
+            self.button.pack(expand=True)
+
+        self.frame2.update() # update frame2 height so it's no longer 0 ( height is 0 when it has just been created )
+                                                                                                                   #width 0 because we only scroll verticaly so don't mind about the width.
+        self.canvas_container.pack(side="left", fill=tk.X, expand=True)
+        self.myscrollbar.pack(side="left", fill = tk.Y, expand=True)
         
 if __name__ == "__main__":
 
@@ -397,5 +415,4 @@ if __name__ == "__main__":
     #App.mainloop()
 
     palala = App()
-    palala.resizable = False
     palala.mainloop()

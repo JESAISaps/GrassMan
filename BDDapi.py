@@ -9,7 +9,7 @@ def connection(bdd, id,mdp):
     if CheckIfIdExists(bdd, id):
         command = "SELECT motdepasse FROM client WHERE identifiant = '{identifiant}';"
         #print(command)
-        vraimdp=bddstade.execute(command.format(identifiant=id)).fetchall()[0][0]
+        vraimdp=bddstade.execute(command, {"identifiant":id}).fetchall()[0][0]
         #print(mdp.encode("utf-8"))
         #print(vraimdp.encode("utf-8"))
         if bcrypt.checkpw(mdp.encode("utf-8"), vraimdp.encode("utf-8")):
@@ -39,7 +39,7 @@ def nouveauclient(bdd, id,name,name1,motdepasse):
     bddstade = bdd.cursor()
     command = "INSERT INTO client VALUES ('{nom}', '{prenom}','{identifiant}','{password}');"
     #print(command.format(nom=name1, prenom=name, identifiant=id, password=str(bcrypt.hashpw(psw, bcrypt.gensalt()))[2:-1]))
-    bddstade.execute(command.format(nom=name1, prenom=name, identifiant=id, password=str(bcrypt.hashpw(psw, bcrypt.gensalt()))[2:-1]))
+    bddstade.execute(command, {"nom":name1, "prenom":name, "identifiant":id, "password":str(bcrypt.hashpw(psw, bcrypt.gensalt()))[2:-1]})
     #bdd.close()
 
 if __name__ == "__main__":
