@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image, ImageTk
 import BDDapi
 import sqlite3
-import functools
+from tkscrolledframe import ScrolledFrame
 
 from stades import Stade
 from scipy.ndimage import gaussian_filter
@@ -15,6 +15,9 @@ from scipy.ndimage import gaussian_filter
 class App(Tk):
 
     def __init__(self):
+
+        self.BDDPATH = "./data/bddstade.db"
+        self.client = None
 
         #initializes Tk
         super().__init__()
@@ -37,6 +40,7 @@ class App(Tk):
 
         self.activeFrame = "HomeFrame"
         self.frames[self.activeFrame].tkraise()
+
         
     # to display the frame passed as parameter
     def show_frame(self, cont:str):
@@ -50,14 +54,53 @@ class App(Tk):
         frame.pack(expand=True)
         frame.tkraise()
 
-    def AddStadiumFrame(self, name, *dimensions):
-        self.frames[name] = StadiumFrameTemplate(self.container, self, name, *dimensions)
-        self.frames[name].pack(expand=True)
+    def AddStadiumFrame(self, name, dimensions=(100, 50)):
+        if name in ["HomeFrame", "CreateStadium", "Stadiumlist"]:
+            print("Nom de stade reservé")
+            return
 
+        self.frames[name] = StadiumFrameTemplate(self.container, self, name, dimensions)
+        #self.frames[name].pack(expand=True)
+
+    def createUserSession(self, id):
+        if self.client is not None:
+            print("Error, existing session running")
+            return
+        else:
+            self.client = User(self, id)    
+    
+    def CreateStadiumFrames(self):
+
+        stadiumList = self.client.GetClientStadiums()
+        for stadium in stadiumList:
+            self.AddStadiumFrame(stadium)
+
+
+class User:
+
+    def __init__(self, root:App, id=None):
+        self.root = root
+        self.id = id
+        self.stadiumList = self.RefreshClientStadiums()
+        
+    def GetClientId(self):
+        return self.id
+    
+    def GetClientStadiums(self)->list[str]:
+        return self.stadiumList
+    
+    def RefreshClientStadiums(self):
+
+        bdd = sqlite3.connect(self.root.BDDPATH)
+        rep = BDDapi.GetClientStadiums(bdd, self.root.client)
+        self.stadiumList = rep
+        bdd.close()
+        return rep
+    
 
 class SideMenu(tk.Frame):
 
-    def __init__(self, parent, root):
+    def __init__(self, parent, root:App):
         self.root = root
         self.min_w = 50 # Minimum width of the frame
         self.max_w = 180 # Maximum width of the frame
@@ -195,7 +238,7 @@ class SideMenu(tk.Frame):
         self.after(2000, self.UserCreatedLabel.destroy)
     
     def CreateUser(self, id, psw1, psw2, name, name2):        
-        bdd = sqlite3.connect("./data/bddstade.db")
+        bdd = sqlite3.connect(self.root.BDDPATH)
         if psw1 != psw2:
             self.MismachPassword()
         elif BDDapi.CheckIfIdExists(bdd, self.id.get()):
@@ -209,11 +252,11 @@ class SideMenu(tk.Frame):
 
 class HomeFrame(tk.Frame):
 
-    def __init__(self, parent:tk.Frame, controller:App):
+    def __init__(self, parent:tk.Frame, root:App):
 
         tk.Frame.__init__(self, parent)
         # reference to controller main window, might be usefulls
-        self.controller = controller
+        self.root = root
         self.parent = parent
         self.userId = tk.StringVar()
         self.idInput = ttk.Entry(self, textvariable=self.userId)
@@ -235,31 +278,35 @@ class HomeFrame(tk.Frame):
         self.SideMenu = SideMenu(parent, self)        
 
     def CheckLogin(self, id, psw):
-        bdd = sqlite3.connect("./data/bddstade.db")
+        bdd = sqlite3.connect(self.root.BDDPATH)
+        access = BDDapi.connection(bdd, id, psw)
+        bdd.close()
         #pour test des menus
         if id == "azerty":
-            self.controller.show_frame("StadiumList")
+            self.root.show_frame("StadiumList")
             return
 
-        if BDDapi.connection(bdd, id, psw):
+        if access:
             print("Acces autorise")
             #TODO: connecter l'utilisateur
-            bdd.close()
+            self.root.createUserSession(id)
+            self.root.CreateStadiumFrames()
+            self.root.show_frame("StadiumList")
+            self.root.frames["StadiumList"].ShowButtons()
             return
         else:
             print("Hehe non")
-            bdd.close()
             return
 
 
 class CreateStadiumFrame(tk.Frame):
 
-    def __init__(self, parent:tk.Frame, controller:App):
+    def __init__(self, parent:tk.Frame, root:App):
 
         # initialises Frame
         tk.Frame.__init__(self, parent)
 
-        self.controller = controller
+        self.controller = root
 
         # default dimensions, will not be used, it's just for initialisation
         self.dimensionX = 100
@@ -294,7 +341,7 @@ class CreateStadiumFrame(tk.Frame):
         Calls funtion to check in inputs are correct and calls App method to add the stadium
         """
         if self.CheckValues():
-            self.controller.AddStadiumFrame(self.stadiumName.get(), int(self.xDim.get()), int(self.yDim.get()))
+            self.controller.AddStadiumFrame(self.stadiumName.get(), (int(self.xDim.get()), int(self.yDim.get())))
             self.controller.show_frame(self.stadiumName.get())
         else:
             self.ErrorLabel.pack(side="bottom")
@@ -320,7 +367,7 @@ class CreateStadiumFrame(tk.Frame):
 
 class StadiumFrameTemplate(tk.Frame):
 
-    def __init__(self, parent:tk.Frame, controller:App, nomStade:str, *dimentions):
+    def __init__(self, parent:tk.Frame, root:App, nomStade:str, dimentions):
 
         # initialises Frame
         tk.Frame.__init__(self, parent)
@@ -328,7 +375,7 @@ class StadiumFrameTemplate(tk.Frame):
         self.name = nomStade
 
         #create the stadium we'll get data from
-        self.stade = Stade(nomStade, *dimentions)
+        self.stade = Stade(nomStade, dimentions, "hiver")
         
         
         self.graphImage = self.createGraph(self.stade.getTemp())
@@ -368,45 +415,22 @@ class StadiumFrameTemplate(tk.Frame):
 
 class StadiumListFrame(tk.Frame):
 
-    def __init__(self, parent, root):
-        self.root = root
-
+    def __init__(self, parent:tk.Frame, root:App):
+        
         tk.Frame.__init__(self, parent)
+        self.root = root
+        self.list = ScrolledFrame(self, width = 400, height = 200, scrollbars = "vertical", use_ttk = True)
+        self.list.pack(side="left")
+        self.displayWidget = self.list.display_widget(tk.Frame)
 
-        #self.text = tk.Text(self, wrap="none")
-        #self.text.pack(side="left", padx=100, pady=100)
-        #self.sb = tk.Scrollbar(self, command=self.text.yview)
-        #self.sb.pack(side="right")
-        #self.text.configure(yscrollcommand=self.sb.set)
+    def ShowButtons(self):
+        self.stadiumsToShow = self.root.client.GetClientStadiums()
+        print(self.stadiumsToShow)
+        for stadium in self.stadiumsToShow:
+            button = ttk.Button(self.displayWidget, text=stadium, command= lambda : self.root.show_frame(stadium))
+            button.pack()
+        #self.root.update_idletasks()
 
-        #for i in range(1, 21):
-        #    button = ttk.Button(self.text, text=str(i))
-        #    self.text.window_create("end", window=button)
-        #    self.text.insert("end", "\n")
-        #self.text.configure(state="disabled")
-
-        self.canvas_container=tk.Canvas(self, height=200)
-        self.frame2=ttk.Frame(self.canvas_container)
-        self.myscrollbar=ttk.Scrollbar(self,orient="vertical",command=self.canvas_container.yview) # will be visible if the frame2 is to to big for the canvas
-        self.canvas_container.create_window((0,0),window=self.frame2,anchor='nw')
-        
-        self.canvas_container.configure(yscrollcommand=self.myscrollbar.set)#, scrollregion="0 0 0 %s" % self.frame2.winfo_height()) # the scrollregion mustbe the size of the frame inside it,
-                                                                                                                    #in this case "x=0 y=0 width=0 height=frame2height"
-        
-        self.canvas_container.bind('<Configure>', lambda e: self.canvas_container.configure(scrollregion=self.canvas_container.bbox("all")))
-
-        def func(name):
-            print (name)
-
-        self.mylist = ['item1','item2','item3','item4','item5','item6','item7','item8','item9', "10", "11", "12", "13"]
-        for item in self.mylist:
-            self.button = ttk.Button(self.frame2,text=item,command=functools.partial(func,item))
-            self.button.pack(expand=True)
-
-        self.frame2.update() # update frame2 height so it's no longer 0 ( height is 0 when it has just been created )
-                                                                                                                   #width 0 because we only scroll verticaly so don't mind about the width.
-        self.canvas_container.pack(side="left", fill=tk.X, expand=True)
-        self.myscrollbar.pack(side="left", fill = tk.Y, expand=True)
         
 if __name__ == "__main__":
 

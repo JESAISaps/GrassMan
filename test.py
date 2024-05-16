@@ -1,32 +1,40 @@
-import functools
+#!/usr/bin/env python3
+
 from tkinter import *
+from tkscrolledframe import ScrolledFrame
 
-window = Tk()
-frame_container=Frame(window)
+# Create a root window
+root = Tk()
 
-canvas_container=Canvas(frame_container, height=100)
-frame2=Frame(canvas_container)
-myscrollbar=Scrollbar(frame_container,orient="vertical",command=canvas_container.yview) # will be visible if the frame2 is to to big for the canvas
-canvas_container.create_window((0,0),window=frame2,anchor='nw')
+# Create a ScrolledFrame widget
+sf = ScrolledFrame(root, width=640, height=480)
+sf.pack(side="top", expand=1, fill="both")
 
-def func(name):
-    print (name)
+# Bind the arrow keys and scroll wheel
+sf.bind_arrow_keys(root)
+sf.bind_scroll_wheel(root)
 
-mylist = ['item1','item2','item3','item4','item5','item6','item7','item8','item9']
-for item in mylist:
-    button = Button(frame2,text=item,command=functools.partial(func,item))
-    button.pack()
-canvas_container.bind(
-    '<Configure>', lambda e: canvas_container.configure(scrollregion=canvas_container.bbox("all"))
-)
+# Create a frame within the ScrolledFrame
+inner_frame = sf.display_widget(Frame)
 
-frame2.update() # update frame2 height so it's no longer 0 ( height is 0 when it has just been created )
-canvas_container.configure(yscrollcommand=myscrollbar.set, scrollregion="0 0 0 %s" % frame2.winfo_height()) # the scrollregion mustbe the size of the frame inside it,
-                                                                                                            #in this case "x=0 y=0 width=0 height=frame2height"
-                                                                                                            #width 0 because we only scroll verticaly so don't mind about the width.
+# Add a bunch of widgets to fill some space
+num_rows = 2
+num_cols = 2
+for row in range(num_rows):
+    for column in range(num_cols):
+        w = Label(inner_frame,
+                  width=15,
+                  height=5,
+                  borderwidth=2,
+                  relief="groove",
+                  anchor="center",
+                  justify="center",
+                  text=str(row * num_cols + column))
 
-canvas_container.pack(side=LEFT)
-myscrollbar.pack(side=LEFT, fill = Y)
+        w.grid(row=row,
+               column=column,
+               padx=4,
+               pady=4)
 
-frame_container.pack()
-window.mainloop()
+# Start Tk's event loop
+root.mainloop()

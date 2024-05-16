@@ -38,6 +38,10 @@ def nouveauclient(bdd, id,name,name1,motdepasse):
     bddstade.execute(command, (name1, name, id, str(bcrypt.hashpw(psw, bcrypt.gensalt()))[2:-1]))
     #bdd.close()
 
+def GetClientStadiums(bdd, client)->list[str]:
+    #TODO: Choper le nom des stades qui apartiennent au client et la renvoyer
+    return ["Velodrome", "Chez ton pere"] #en attendant
+
 if __name__ == "__main__":
     password = "HelloWorld".encode("utf-8")
     hashed = bcrypt.hashpw(password, bcrypt.gensalt())
