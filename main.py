@@ -419,9 +419,13 @@ class StadiumListFrame(tk.Frame):
         
         tk.Frame.__init__(self, parent)
         self.root = root
+        self.parent = parent
         self.list = ScrolledFrame(self, width = 400, height = 200, scrollbars = "vertical", use_ttk = True)
         self.list.pack(side="left")
         self.displayWidget = self.list.display_widget(tk.Frame)
+
+        self.createStadiumBUtton = ttk.Button(self, text="Creer un nouveau stade", command=lambda : root.show_frame("CreateStadium"))
+        self.createStadiumBUtton.pack(side="right")
 
     def ShowButtons(self):
         self.stadiumsToShow = self.root.client.GetClientStadiums()
