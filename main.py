@@ -83,13 +83,13 @@ class User:
         self.id = id
         self.stadiumList = self.RefreshClientStadiums()
         
-    def GetClientId(self):
+    def GetClientId(self)->str:
         return self.id
     
     def GetClientStadiums(self)->list[str]:
         return self.stadiumList
     
-    def RefreshClientStadiums(self):
+    def RefreshClientStadiums(self)->list[str]:
 
         bdd = sqlite3.connect(self.root.BDDPATH)
         rep = BDDapi.GetClientStadiums(bdd, self.root.client)
@@ -106,6 +106,8 @@ class SideMenu(tk.Frame):
         self.max_w = 180 # Maximum width of the frame
         self.cur_width = self.min_w # Increasing width of the frame
         self.expanded = False # Check if it is completely exanded
+        self.isMoving = False # So we dont interupt the window resizement
+        self.hasChanged = False
 
         # Define the icon to be shown and resize it
         self.plusImage = ImageTk.PhotoImage(Image.open("./data/images/plus.png").resize((40, 40)))
@@ -146,37 +148,54 @@ class SideMenu(tk.Frame):
         self.plusImageObject.pack(fill="none", expand=True)
 
         # Bind to the frame, if entered or left
-        self.bind('<Enter>',lambda e: self.expand())
-        self.bind('<Leave>',lambda e: self.contract())
+        self.bind('<Enter>',lambda e: self.expand() if self.isMoving is False else SetHasChanged())
+        self.bind('<Leave>',lambda e: self.contract() if self.isMoving is False else SetHasChanged())
+
+        def SetHasChanged():
+            """
+            Fix for menu not retracting if user is too fast
+            """
+            self.hasChanged = not self.hasChanged
 
         # So that it does not depend on the widgets inside the frame
         self.pack_propagate(False)
     
-    def expand(self):
+    def expand(self)->None:
         if(self.expanded):
             return
-        
-        self.cur_width += 10 # Increase the width by 10
+        self.isMoving = True
+        self.cur_width += 15 # Increase the width by 15
         self.rep = self.root.after(5,self.expand) # Repeat this func every 5 ms
         self.config(width=self.cur_width) # Change the width to new increase width
         if self.cur_width >= self.max_w: # If width is greater than maximum width 
             self.expanded = True # Frame is expended
             self.root.after_cancel(self.rep) # Stop repeating the func
+            self.isMoving = False
+
+            if self.hasChanged:
+                self.hasChanged = False
+                self.contract()
             self.fill()
 
-    def contract(self):
+    def contract(self)->None:
         if(self.isLocked.get()):
             return
-
-        self.cur_width -= 10 # Reduce the width by 10
+        self.isMoving = False
+        self.cur_width -= 15 # Reduce the width by 15
         self.rep = self.root.after(5,self.contract) # Call this func every 5 ms
         self.config(width=self.cur_width) # Change the width to new reduced width
         if self.cur_width <= self.min_w: # If it is back to normal width
             self.expanded = False # Frame is not expanded
             self.root.after_cancel(self.rep) # Stop repeating the func
+            self.cur_width = self.min_w # if we went too far
+            self.isMoving = False
+
+            if self.hasChanged:
+                self.hasChanged = False
+                self.expand()
             self.fill()
     
-    def fill(self):
+    def fill(self)->None:
         if self.expanded: # If the frame is extended
 
             # Show everything, hide image
@@ -222,22 +241,22 @@ class SideMenu(tk.Frame):
             # Bring the image back
             self.plusImageObject.pack(fill="none", expand=True)
 
-    def MismachPassword(self):
+    def MismachPassword(self)->None:
         self.passwordMismachErrorLabel = ttk.Label(self, text="Erreur dans la confirmation du \nmot de passe", background="red", justify="center")
         self.passwordMismachErrorLabel.pack(side="bottom", pady=(0, 2))
         self.after(2000, self.passwordMismachErrorLabel.destroy)
 
-    def DuplacateId(self):
+    def DuplacateId(self)->None:
         self.duplicateIdLabel = ttk.Label(self, text="Ce nom d'utilisateur existe déjà !", background="red", justify="center")
         self.duplicateIdLabel.pack(side="bottom", pady=(0, 2))        
         self.after(2000, self.duplicateIdLabel.destroy)
 
-    def UserCreated(self):
+    def UserCreated(self)->None:
         self.UserCreatedLabel = ttk.Label(self, text="Utilisateur créé avec succes,\nvous pouvez vous connecter.", background="green", justify="center")
         self.UserCreatedLabel.pack(side="bottom", pady=(0, 2))
         self.after(2000, self.UserCreatedLabel.destroy)
     
-    def CreateUser(self, id, psw1, psw2, name, name2):        
+    def CreateUser(self, id, psw1, psw2, name, name2)->None:        
         bdd = sqlite3.connect(self.root.BDDPATH)
         if psw1 != psw2:
             self.MismachPassword()
@@ -272,12 +291,12 @@ class HomeFrame(tk.Frame):
         self.passwordInputLabel.pack(side="top",ipady=10)
         self.passwordInput.pack(side="top")
 
-        self.confirmButton = ttk.Button(self, text="Confirmer", command= lambda : self.CheckLogin(self.userId.get(), self.password.get()))
+        self.confirmButton = ttk.Button(self, text="Confirmer", command= lambda : self.LoginUser(self.userId.get(), self.password.get()))
         self.confirmButton.pack(side="bottom")
 
         self.SideMenu = SideMenu(parent, self)        
 
-    def CheckLogin(self, id, psw):
+    def LoginUser(self, id, psw)->None:
         bdd = sqlite3.connect(self.root.BDDPATH)
         access = BDDapi.connection(bdd, id, psw)
         bdd.close()
@@ -308,7 +327,7 @@ class CreateStadiumFrame(tk.Frame):
 
         self.controller = root
 
-        # default dimensions, will not be used, it's just for initialisation
+        # default values, will not be used, it's just for initialisation
         self.dimensionX = 100
         self.dimensionY = 50
 
@@ -336,7 +355,7 @@ class CreateStadiumFrame(tk.Frame):
 
         self.ErrorLabel = ttk.Label(self, text = "Veuillez verifier vos entrées")
     
-    def CreateNewStadium(self):
+    def CreateNewStadium(self)->None:
         """
         Calls funtion to check in inputs are correct and calls App method to add the stadium
         """
@@ -346,7 +365,7 @@ class CreateStadiumFrame(tk.Frame):
         else:
             self.ErrorLabel.pack(side="bottom")
     
-    def CheckValues(self):
+    def CheckValues(self)->bool:
         isGood = True
 
         # name must not be empty or just spaces
@@ -386,7 +405,7 @@ class StadiumFrameTemplate(tk.Frame):
         self.refreshGraphButton.pack(side="right", padx=30, pady=30)
 
 
-    def createGraph(self, data):
+    def createGraph(self, data)->Image:
         """
         returns image to show
         """
@@ -401,7 +420,7 @@ class StadiumFrameTemplate(tk.Frame):
 
         return photo
 
-    def updateGraph(self):
+    def updateGraph(self)->None:
         # On detruit l'objet du graphe pour le recreer
         self.graphLabel.destroy()
 
@@ -427,7 +446,7 @@ class StadiumListFrame(tk.Frame):
         self.createStadiumBUtton = ttk.Button(self, text="Creer un nouveau stade", command=lambda : root.show_frame("CreateStadium"))
         self.createStadiumBUtton.pack(side="right")
 
-    def ShowButtons(self):
+    def ShowButtons(self)->None:
         self.stadiumsToShow = self.root.client.GetClientStadiums()
         print(self.stadiumsToShow)
         for stadium in self.stadiumsToShow:
