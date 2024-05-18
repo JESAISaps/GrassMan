@@ -392,8 +392,8 @@ class StadiumFrameTemplate(tk.Frame):
         """
         imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
 
-        matim.imsave("./temp.gitignore/tempGraph.png", imageData)
-        image = Image.open("./temp.gitignore/tempGraph.png")
+        matim.imsave("./temp/tempGraph.png", imageData)
+        image = Image.open("./temp/tempGraph.png")
 
         image = image.resize((500, 250))
 
