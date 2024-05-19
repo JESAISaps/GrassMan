@@ -294,7 +294,7 @@ class HomeFrame(tk.Frame):
         self.confirmButton = ttk.Button(self, text="Confirmer", command= lambda : self.LoginUser(self.userId.get(), self.password.get()))
         self.confirmButton.pack(side="bottom")
 
-        self.SideMenu = SideMenu(parent, self)        
+        self.SideMenu = SideMenu(parent, self.root)        
 
     def LoginUser(self, id, psw)->None:
         bdd = sqlite3.connect(self.root.BDDPATH)
