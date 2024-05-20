@@ -1,6 +1,6 @@
 import bcrypt
-
-
+import stades
+import sqlite3
 def connection(bdd, id,mdp):
     #bdd = sqlite3.connect("./data/bddstade.db")
     bddstade = bdd.cursor()
@@ -42,9 +42,36 @@ def GetClientStadiums(bdd, client)->list[str]:
     #TODO: Choper le nom des stades qui apartiennent au client et la renvoyer
     return ["Velodrome", "Chez ton pere"] #en attendant
 
+def associerdatetemperature(bddstade):
+    bdd=bddstade.cursor()
+    listejour=bdd.execute('Select Jour from Temperature').fetchall()
+    if listejour==[]:
+        return 1
+    else:
+        return listejour[len(listejour)-1][0]+1
+    
+def recupidcapteur(x,y,idstade,bddstade):
+    bdd=bddstade.cursor()
+    idcapteur=bdd.execute('Select IdCapteurs from Capteurs where PositionX= '+str(x)+' and PositionY= '+str(y)+' and IdStade= '+str(idstade)).fetchall()
+    print(idcapteur)
+    return idcapteur[0][0]
+      
+def importtemperature(listetemp,bddstade,nomstade,idstade):
+    jour=associerdatetemperature(bddstade)
+    bdd=bddstade.cursor()
+    for ligne in range (len(listetemp)):
+        print(len(listetemp[ligne]))
+        for colonne in range(len(listetemp[ligne])):
+                idcapteur=recupidcapteur(ligne,colonne,idstade,bddstade)
+                bdd.execute('INSERT INTO Temperature values ('+str(jour)+','+str(listetemp[ligne][colonne])+','+str(idcapteur)+')')
+
 if __name__ == "__main__":
     password = "HelloWorld".encode("utf-8")
     hashed = bcrypt.hashpw(password, bcrypt.gensalt())
     command = f"{hashed}"
     print(hashed, type(hashed))
     print(command)
+    s= stades.Stade("Velodrome",(100,50),"hiver")
+    bdd = sqlite3.connect("./data/bddstade.db")
+    importtemperature(s.CreateFirstTempMap("hiver"),bdd,"Velodrome",s.GetIdStade())
+    bdd.commit()

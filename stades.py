@@ -1,6 +1,6 @@
 from random import randint, choice
 from math import floor
-
+import sqlite3
 class Stade:
 
     def __init__(self, nom:str,dimensions, saison) -> None:
@@ -183,11 +183,16 @@ class Stade:
             return("closed")
         else :
             return("open")  
-
+    def GetIdStade(self):
+        bddstade=sqlite3.connect("./data/bddstade.db")
+        bdd=bddstade.cursor()
+        idstade=bdd.execute("Select IdStade from Stade where Nom='"+self.nom+"'").fetchall()
+        return idstade[0][0]
+     
 
 # condition vraie seulement si ce script est celui qui a ete run, Faux si il est run dans un import
 if __name__ == "__main__":
-    s = Stade("Velodrome","hiver",*[50,100])
+    s = Stade("Velodrome",(50,100),"hiver")
     s.CreateFirstTempMap("hiver")
 
     print(s.moyenneTemp(s.CreateFirstTempMap("hiver")))
