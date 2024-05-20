@@ -3,7 +3,7 @@ from math import floor
 import sqlite3
 class Stade:
 
-    def __init__(self, nom:str,dimensions, saison) -> None:
+    def __init__(self, nom:str, dimensions, saison) -> None:
         self.nom = nom
         self.longueur = dimensions[0]
         self.largeur = dimensions[1]

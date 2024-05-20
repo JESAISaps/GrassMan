@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk, Tk
-#from ConvBDD import BDD
 from matplotlib import pyplot as plt
 from matplotlib import image as matim
 import numpy as np
@@ -325,7 +324,7 @@ class CreateStadiumFrame(tk.Frame):
         # initialises Frame
         tk.Frame.__init__(self, parent)
 
-        self.controller = root
+        self.root = root
 
         # default values, will not be used, it's just for initialisation
         self.dimensionX = 100
@@ -360,8 +359,8 @@ class CreateStadiumFrame(tk.Frame):
         Calls funtion to check in inputs are correct and calls App method to add the stadium
         """
         if self.CheckValues():
-            self.controller.AddStadiumFrame(self.stadiumName.get(), (int(self.xDim.get()), int(self.yDim.get())))
-            self.controller.show_frame(self.stadiumName.get())
+            self.root.AddStadiumFrame(self.stadiumName.get(), (int(self.xDim.get()), int(self.yDim.get())))
+            self.root.show_frame(self.stadiumName.get())
         else:
             self.ErrorLabel.pack(side="bottom")
     
@@ -390,12 +389,12 @@ class StadiumFrameTemplate(tk.Frame):
 
         # initialises Frame
         tk.Frame.__init__(self, parent)
-
+        self.root = root
         self.name = nomStade
 
         #create the stadium we'll get data from
         self.stade = Stade(nomStade, dimentions, "hiver")
-        
+        #TODO: Add stadium to BDD, with client id
         
         self.graphImage = self.createGraph(self.stade.getTemp())
         self.graphLabel = tk.Label(self, image=self.graphImage)
@@ -412,25 +411,22 @@ class StadiumFrameTemplate(tk.Frame):
         imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
 
         matim.imsave("./temp/tempGraph.png", imageData)
-        image = Image.open("./temp/tempGraph.png")
-
-        image = image.resize((500, 250))
+        image = Image.open("./temp/tempGraph.png").resize((500, 250))
 
         photo = ImageTk.PhotoImage(image)
 
         return photo
 
     def updateGraph(self)->None:
-        # On detruit l'objet du graphe pour le recreer
-        self.graphLabel.destroy()
 
         #on met a jour les données de temperature
         self.stade.modifTemp()
 
-        #on recrée le graphe
+        #on change l'image du graphe
         self.graphImage = self.createGraph(self.stade.getTemp())        
-        self.graphLabel = tk.Label(self, image=self.graphImage)  
-        self.graphLabel.pack(side="left")
+        self.graphLabel.configure(image=self.graphImage)
+        self.root.update_idletasks()
+
 
 class StadiumListFrame(tk.Frame):
 
