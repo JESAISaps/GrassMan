@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, Tk
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 from matplotlib import image as matim
 import numpy as np
 from PIL import Image, ImageTk
@@ -10,6 +10,7 @@ from tkscrolledframe import ScrolledFrame
 
 from stades import Stade
 from scipy.ndimage import gaussian_filter
+
 
 class App(Tk):
 
@@ -74,6 +75,10 @@ class App(Tk):
         for stadium in stadiumList:
             self.AddStadiumFrame(stadium)
 
+    def DisconnectClient(self):
+        self.show_frame("HomeFrame")
+        self.client = None
+
 
 class User:
 
@@ -129,6 +134,7 @@ class SideMenu(tk.Frame):
 
         self.frames={str:tk.Frame}
         self.frames["ConnectionFrame"] = self.CreateUserMenu(self, root)
+        self.frames["AccountMenu"] = self.AccountMenu(self, root)
 
         self.activeFrame = "ConnectionFrame"
         self.frames["ConnectionFrame"].pack(expand=True, side="left")
@@ -282,6 +288,31 @@ class SideMenu(tk.Frame):
                 self.UserCreated()
             bdd.close()
 
+    class AccountMenu(tk.Frame):
+
+        def __init__(self, parent:tk.Frame, root:App):
+            
+            tk.Frame.__init__(self, parent, bg='#32cd32', width=50, height=root.winfo_height())
+
+            self.parent = parent
+            self.root = root
+
+            self.NameLabel = ttk.Label(self, text="Default", background="#32cd32")
+
+            self.LogoutButton = ttk.Button(self, text="Se déconnecter", command=self.Logout)
+
+            self.NameLabel.pack(side="left", pady=50)
+            self.LogoutButton.pack(side="left")
+
+        def RefreshText(self, newID):
+            self.NameLabel.configure(text=newID)
+            self.update_idletasks()
+
+        def Logout(self):
+            self.root.DisconnectClient()
+            self.parent.ChangeFrame("ConnectionFrame")
+
+
 class HomeFrame(tk.Frame):
 
     def __init__(self, parent:tk.Frame, root:App):
@@ -307,7 +338,7 @@ class HomeFrame(tk.Frame):
         self.confirmButton = ttk.Button(self, text="Confirmer", command= lambda : self.LoginUser(self.userId.get(), self.password.get()))
         self.confirmButton.pack(side="bottom")
 
-        self.SideMenu = SideMenu(parent, self.root)        
+        self.sideMenu = SideMenu(parent, self.root)        
 
     def LoginUser(self, id, psw)->None:
         bdd = sqlite3.connect(self.root.BDDPATH)
@@ -320,11 +351,12 @@ class HomeFrame(tk.Frame):
 
         if access:
             print("Acces autorise")
-            #TODO: connecter l'utilisateur
             self.root.createUserSession(id)
             self.root.CreateStadiumFrames()
             self.root.show_frame("StadiumList")
             self.root.frames["StadiumList"].ShowButtons()
+            self.sideMenu.ChangeFrame("AccountMenu")
+            self.sideMenu.frames["AccountMenu"].RefreshText(self.root.client.GetClientId())
             return
         else:
             print("Hehe non")
