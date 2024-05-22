@@ -55,7 +55,7 @@ class App(Tk):
         frame.tkraise()
 
     def AddStadiumFrame(self, name, dimensions=(100, 50)):
-        if name in ["HomeFrame", "CreateStadium", "Stadiumlist"]:
+        if name in ["HomeFrame", "CreateStadium", "StadiumList"]:
             print("Nom de stade reservé")
             return
 
@@ -78,6 +78,10 @@ class App(Tk):
     def DisconnectClient(self):
         self.show_frame("HomeFrame")
         self.client = None
+        temp = self.frames.copy()
+        for stadiumName in temp:
+            if stadiumName not in ["HomeFrame", "CreateStadium", "StadiumList"]:
+                self.frames.pop(stadiumName)
 
 
 class User:
@@ -294,8 +298,8 @@ class SideMenu(tk.Frame):
             
             tk.Frame.__init__(self, parent, bg='#32cd32', width=50, height=root.winfo_height())
 
-            self.parent = parent
-            self.root = root
+            self.parent:SideMenu = parent
+            self.root:App = root
 
             self.NameLabel = ttk.Label(self, text="Default", background="#32cd32")
 
@@ -488,13 +492,22 @@ class StadiumListFrame(tk.Frame):
         self.createStadiumBUtton = ttk.Button(self, text="Creer un nouveau stade", command=lambda : root.show_frame("CreateStadium"))
         self.createStadiumBUtton.pack(side="right")
 
+        self.shownButtons:list[ttk.Button] = []
+
     def ShowButtons(self)->None:
+
+        # On supprime les boutons affichés pour les remplacer
+        for i in range(len(self.shownButtons)):
+            item = self.shownButtons.pop(0)
+            item.destroy()
+
         self.stadiumsToShow = self.root.client.GetClientStadiums()
-        print(self.stadiumsToShow)
+
+        #print(self.stadiumsToShow)
         for stadium in self.stadiumsToShow:
             button = ttk.Button(self.displayWidget, text=stadium, command= lambda : self.root.show_frame(stadium))
             button.pack()
-        #self.root.update_idletasks()
+            self.shownButtons.append(button)
 
         
 if __name__ == "__main__":
