@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 import BDDapi
 import sqlite3
 from tkscrolledframe import ScrolledFrame
+import tkcalendar
 
 from stades import Stade
 from scipy.ndimage import gaussian_filter
@@ -31,7 +32,7 @@ class App(Tk):
         self.resizable(False, False)
 
         # initializing frames to an empty dict
-        self.frames = {} # frames are the diferent pages you can open
+        self.frames:dict[tk.Frame] = {} # frames are the different pages you can open
 
         self.frames["HomeFrame"] = HomeFrame(self.container, self)
         self.frames["HomeFrame"].pack(expand=True)
@@ -51,6 +52,7 @@ class App(Tk):
         # sets up new frame
         self.activeFrame = cont
         frame = self.frames[cont]
+        frame.pack_propagate(False)
         frame.pack(expand=True)
         frame.tkraise()
 
@@ -438,7 +440,7 @@ class StadiumFrameTemplate(tk.Frame):
     def __init__(self, parent:tk.Frame, root:App, nomStade:str, dimentions):
 
         # initialises Frame
-        tk.Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent, highlightbackground="black", highlightthickness=1)
         self.root = root
         self.name = nomStade
 
@@ -448,20 +450,25 @@ class StadiumFrameTemplate(tk.Frame):
         
         self.graphImage = self.createGraph(self.stade.getTemp())
         self.graphLabel = tk.Label(self, image=self.graphImage)
-        self.graphLabel.pack(side="left")
 
-        self.refreshGraphButton = tk.Button(self, text="Refresh", command=self.updateGraph, font=("Helvetica", 25))
-        self.refreshGraphButton.pack(side="right", padx=30, pady=30)
+        self.calendar = tkcalendar.Calendar(self, locale="fr")
+
+        
+        self.graphLabel.pack(side="left")
+        self.calendar.pack()
+
+        #self.refreshGraphButton = tk.Button(self, text="Refresh", command=self.updateGraph, font=("Helvetica", 25))
+        #self.refreshGraphButton.pack(side="right", padx=30, pady=30)
 
 
     def createGraph(self, data)->Image:
         """
         returns image to show
         """
-        imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
+        imageData = np.array(gaussian_filter([[[0,(element+20)*7,0] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
 
         matim.imsave("./temp/tempGraph.png", imageData)
-        image = Image.open("./temp/tempGraph.png").resize((500, 250))
+        image = Image.open("./temp/tempGraph.png").resize((250, 125))
 
         photo = ImageTk.PhotoImage(image)
 
