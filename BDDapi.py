@@ -2,7 +2,6 @@ import bcrypt
 import stades
 import sqlite3
 def connection(bdd, id,mdp):
-    #bdd = sqlite3.connect("./data/bddstade.db")
     bddstade = bdd.cursor()
 
     if CheckIfIdExists(bdd, id):
@@ -66,11 +65,11 @@ def importtemperature(listetemp,bddstade,nomstade,idstade):
                 bdd.execute('INSERT INTO Temperature values ('+str(jour)+','+str(listetemp[ligne][colonne])+','+str(idcapteur)+')')
 
 if __name__ == "__main__":
-    password = "HelloWorld".encode("utf-8")
-    hashed = bcrypt.hashpw(password, bcrypt.gensalt())
-    command = f"{hashed}"
-    print(hashed, type(hashed))
-    print(command)
+    #password = "HelloWorld".encode("utf-8")
+    #hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+    #command = f"{hashed}"
+    #print(hashed, type(hashed))
+    #print(command)
     s= stades.Stade("Velodrome",(100,50),"hiver")
     bdd = sqlite3.connect("./data/bddstade.db")
     importtemperature(s.CreateFirstTempMap("hiver"),bdd,"Velodrome",s.GetIdStade())

@@ -1,15 +1,17 @@
 import tkinter as tk
 from tkinter import ttk, Tk
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 from matplotlib import image as matim
 import numpy as np
 from PIL import Image, ImageTk
 import BDDapi
 import sqlite3
 from tkscrolledframe import ScrolledFrame
+import tkcalendar
 
 from stades import Stade
 from scipy.ndimage import gaussian_filter
+
 
 class App(Tk):
 
@@ -30,7 +32,7 @@ class App(Tk):
         self.resizable(False, False)
 
         # initializing frames to an empty dict
-        self.frames = {} # frames are the diferent pages you can open
+        self.frames:dict[tk.Frame] = {} # frames are the different pages you can open
 
         self.frames["HomeFrame"] = HomeFrame(self.container, self)
         self.frames["HomeFrame"].pack(expand=True)
@@ -50,11 +52,12 @@ class App(Tk):
         # sets up new frame
         self.activeFrame = cont
         frame = self.frames[cont]
+        frame.pack_propagate(False)
         frame.pack(expand=True)
         frame.tkraise()
 
     def AddStadiumFrame(self, name, dimensions=(100, 50)):
-        if name in ["HomeFrame", "CreateStadium", "Stadiumlist"]:
+        if name in ["HomeFrame", "CreateStadium", "StadiumList"]:
             print("Nom de stade reservé")
             return
 
@@ -73,6 +76,14 @@ class App(Tk):
         stadiumList = self.client.GetClientStadiums()
         for stadium in stadiumList:
             self.AddStadiumFrame(stadium)
+
+    def DisconnectClient(self):
+        self.show_frame("HomeFrame")
+        self.client = None
+        temp = self.frames.copy()
+        for stadiumName in temp:
+            if stadiumName not in ["HomeFrame", "CreateStadium", "StadiumList"]:
+                self.frames.pop(stadiumName)
 
 
 class User:
@@ -106,7 +117,8 @@ class SideMenu(tk.Frame):
         self.cur_width = self.min_w # Increasing width of the frame
         self.expanded = False # Check if it is completely exanded
         self.isMoving = False # So we dont interupt the window resizement
-        self.hasChanged = False
+        self.hasChanged = False        
+        self.isLocked = tk.BooleanVar()
 
         # Define the icon to be shown and resize it
         self.plusImage = ImageTk.PhotoImage(Image.open("./data/images/plus.png").resize((40, 40)))
@@ -116,31 +128,7 @@ class SideMenu(tk.Frame):
         tk.Frame.__init__(self, parent, bg='#32cd32',width=50,height=root.winfo_height())
         self.pack(side="right", fill=tk.Y)
 
-        self.nameLabel = ttk.Label(self, text="Entrez votre prenom", background="#32cd32")
-        self.name = tk.StringVar()
-        self.nameEntry = ttk.Entry(self, textvariable=self.name)
-
-        self.name2Label = ttk.Label(self, text="Entrez votre nom : ", background="#32cd32")
-        self.name2 = tk.StringVar()
-        self.name2Entry = ttk.Entry(self, textvariable=self.name2)
-
-        self.idLabel = ttk.Label(self, text="Créez un identifiant : ", background="#32cd32")
-        self.id = tk.StringVar()
-        self.idEntry = ttk.Entry(self, textvariable=self.id)
-
-        self.passwordLabel1 = ttk.Label(self, text="Créez un mot de passe", background='#32cd32')
-        # Creates the entries along with labels
-        self.password1, self.password2 = tk.StringVar(), tk.StringVar()
-        self.passwordEntry1 = ttk.Entry(self, textvariable=self.password1, show="•")
-
-        self.passwordLabel2 = ttk.Label(self, text="Confirmez le mot de passe", background='#32cd32')
-        self.passwordEntry2 = ttk.Entry(self, textvariable=self.password2, show="•")
-
-        self.isLocked = tk.BooleanVar()
-        self.lockMenuButton = ttk.Checkbutton(self, variable=self.isLocked, text="Bloquer le menu")
-
-        self.confirmButton = ttk.Button(self, text="Créer", command=lambda : self.CreateUser(self.id.get(), self.password1.get(), self.password2.get(), self.name.get(), self.name2.get()))
-
+        
         self.plusImageObject = tk.Label(self, image=self.plusImage, bg="#32cd32")
 
 
@@ -150,6 +138,13 @@ class SideMenu(tk.Frame):
         self.bind('<Enter>',lambda e: self.expand() if self.isMoving is False else SetHasChanged())
         self.bind('<Leave>',lambda e: self.contract() if self.isMoving is False else SetHasChanged())
 
+        self.frames={str:tk.Frame}
+        self.frames["ConnectionFrame"] = self.CreateUserMenu(self, root)
+        self.frames["AccountMenu"] = self.AccountMenu(self, root)
+
+        self.activeFrame = "ConnectionFrame"
+        self.frames["ConnectionFrame"].pack(expand=True, side="left")
+
         def SetHasChanged():
             """
             Fix for menu not retracting if user is too fast
@@ -157,6 +152,7 @@ class SideMenu(tk.Frame):
             self.hasChanged = not self.hasChanged
 
         # So that it does not depend on the widgets inside the frame
+        self.fill() # we run the method once to initialize everything
         self.pack_propagate(False)
     
     def expand(self)->None:
@@ -194,13 +190,66 @@ class SideMenu(tk.Frame):
                 self.expand()
             self.fill()
     
+    def ChangeFrame(self, frameName:str):
+
+        # remove current page
+        self.frames[self.activeFrame].pack_forget()
+
+        # sets up new frame
+        self.activeFrame = frameName
+        frame = self.frames[frameName]
+        frame.pack(expand=True, side="left")
+        frame.tkraise()
+
     def fill(self)->None:
         if self.expanded: # If the frame is extended
 
+            self.frames[self.activeFrame].pack()
             # Show everything, hide image
             self.plusImageObject.pack_forget()
+            
+        else:
+            # hide everything
+            self.frames[self.activeFrame].pack_forget()
 
-            self.nameLabel.pack(side="top", pady=(20, 0))
+            # Bring the image back
+            self.plusImageObject.pack(fill="none", expand=True)
+    
+    class CreateUserMenu(tk.Frame):
+
+        def __init__(self, parent:tk.Frame, root:App):
+
+            tk.Frame.__init__(self, parent, bg='#32cd32',width=50,height=root.winfo_height())
+
+            self.parent = parent
+            self.root = root
+
+            self.nameLabel = ttk.Label(self, text="Entrez votre prenom", background="#32cd32")
+            self.name = tk.StringVar()
+            self.nameEntry = ttk.Entry(self, textvariable=self.name)
+
+            self.name2Label = ttk.Label(self, text="Entrez votre nom : ", background="#32cd32")
+            self.name2 = tk.StringVar()
+            self.name2Entry = ttk.Entry(self, textvariable=self.name2)
+
+            self.idLabel = ttk.Label(self, text="Créez un identifiant : ", background="#32cd32")
+            self.id = tk.StringVar()
+            self.idEntry = ttk.Entry(self, textvariable=self.id)
+
+            # Creates the entries along with labels
+            self.passwordLabel1 = ttk.Label(self, text="Créez un mot de passe", background='#32cd32')
+            self.password1, self.password2 = tk.StringVar(), tk.StringVar()
+            self.passwordEntry1 = ttk.Entry(self, textvariable=self.password1, show="•")
+
+            self.passwordLabel2 = ttk.Label(self, text="Confirmez le mot de passe", background='#32cd32')
+            self.passwordEntry2 = ttk.Entry(self, textvariable=self.password2, show="•")
+
+            self.lockMenuButton = ttk.Checkbutton(self, variable=self.parent.isLocked, text="Bloquer le menu")
+
+            self.confirmButton = ttk.Button(self, text="Créer", command=lambda : self.CreateUser(self.id.get(), self.password1.get(), self.password2.get(), self.name.get(), self.name2.get()))
+            
+            # place everything
+            self.nameLabel.pack(side="top", pady=(35, 0))
             self.nameEntry.pack(side="top", pady=(0, 10))
 
             self.name2Label.pack(side="top", pady=(5, 0))
@@ -210,63 +259,65 @@ class SideMenu(tk.Frame):
             self.idEntry.pack(side="top", pady=(0, 25))
 
             self.passwordLabel1.pack(pady=(30, 0))
-            self.passwordEntry1.pack(pady=(0, 20))
+            self.passwordEntry1.pack(pady=(0, 10))
 
             self.passwordLabel2.pack()
             self.passwordEntry2.pack()
 
-            self.lockMenuButton.pack()
+            self.lockMenuButton.pack(pady=(2, 2))
             self.confirmButton.pack(side="bottom")
-        else:
-            # hide everything
-            self.nameLabel.pack_forget()
-            self.nameEntry.pack_forget()
 
-            self.name2Label.pack_forget()
-            self.name2Entry.pack_forget()
+        def MismachPassword(self)->None:
+            self.passwordMismachErrorLabel = ttk.Label(self, text="Erreur dans la confirmation du \nmot de passe", background="red", justify="center")
+            self.passwordMismachErrorLabel.pack(side="bottom", pady=(0, 2))
+            self.after(2000, self.passwordMismachErrorLabel.destroy)
 
-            self.idLabel.pack_forget()
-            self.idEntry.pack_forget()
+        def DuplacateId(self)->None:
+            self.duplicateIdLabel = ttk.Label(self, text="Ce nom d'utilisateur existe déjà !", background="red", justify="center")
+            self.duplicateIdLabel.pack(side="bottom", pady=(0, 2))        
+            self.after(2000, self.duplicateIdLabel.destroy)
 
-            self.passwordLabel1.pack_forget()
-            self.passwordEntry1.pack_forget()
+        def UserCreated(self)->None:
+            self.UserCreatedLabel = ttk.Label(self, text="Utilisateur créé avec succes,\nvous pouvez vous connecter.", background="green", justify="center")
+            self.UserCreatedLabel.pack(side="bottom", pady=(0, 2))
+            self.after(2000, self.UserCreatedLabel.destroy)
 
-            self.passwordLabel2.pack_forget()
-            self.passwordEntry2.pack_forget()
+        def CreateUser(self, id, psw1, psw2, name, name2)->None:        
+            bdd = sqlite3.connect(self.root.BDDPATH)
+            if psw1 != psw2:
+                self.MismachPassword()
+            elif BDDapi.CheckIfIdExists(bdd, self.id.get()):
+                self.DuplacateId()
+            else:        
+                BDDapi.nouveauclient(bdd, id, name2, name, psw1)
+                bdd.commit()
+                self.UserCreated()
+            bdd.close()
 
-            self.lockMenuButton.pack_forget()
-            self.confirmButton.pack_forget()
+    class AccountMenu(tk.Frame):
 
-            # Bring the image back
-            self.plusImageObject.pack(fill="none", expand=True)
+        def __init__(self, parent:tk.Frame, root:App):
+            
+            tk.Frame.__init__(self, parent, bg='#32cd32', width=50, height=root.winfo_height())
 
-    def MismachPassword(self)->None:
-        self.passwordMismachErrorLabel = ttk.Label(self, text="Erreur dans la confirmation du \nmot de passe", background="red", justify="center")
-        self.passwordMismachErrorLabel.pack(side="bottom", pady=(0, 2))
-        self.after(2000, self.passwordMismachErrorLabel.destroy)
+            self.parent:SideMenu = parent
+            self.root:App = root
 
-    def DuplacateId(self)->None:
-        self.duplicateIdLabel = ttk.Label(self, text="Ce nom d'utilisateur existe déjà !", background="red", justify="center")
-        self.duplicateIdLabel.pack(side="bottom", pady=(0, 2))        
-        self.after(2000, self.duplicateIdLabel.destroy)
+            self.NameLabel = ttk.Label(self, text="Default", background="#32cd32")
 
-    def UserCreated(self)->None:
-        self.UserCreatedLabel = ttk.Label(self, text="Utilisateur créé avec succes,\nvous pouvez vous connecter.", background="green", justify="center")
-        self.UserCreatedLabel.pack(side="bottom", pady=(0, 2))
-        self.after(2000, self.UserCreatedLabel.destroy)
-    
-    def CreateUser(self, id, psw1, psw2, name, name2)->None:        
-        bdd = sqlite3.connect(self.root.BDDPATH)
-        if psw1 != psw2:
-            self.MismachPassword()
-        elif BDDapi.CheckIfIdExists(bdd, self.id.get()):
-            self.DuplacateId()
-        else:        
-            BDDapi.nouveauclient(bdd, id, name2, name, psw1)
-            bdd.commit()
-            self.UserCreated()
-        bdd.close()
-        
+            self.LogoutButton = ttk.Button(self, text="Se déconnecter", command=self.Logout)
+
+            self.NameLabel.pack(side="left", pady=50)
+            self.LogoutButton.pack(side="left")
+
+        def RefreshText(self, newID):
+            self.NameLabel.configure(text=newID)
+            self.update_idletasks()
+
+        def Logout(self):
+            self.root.DisconnectClient()
+            self.parent.ChangeFrame("ConnectionFrame")
+
 
 class HomeFrame(tk.Frame):
 
@@ -293,7 +344,7 @@ class HomeFrame(tk.Frame):
         self.confirmButton = ttk.Button(self, text="Confirmer", command= lambda : self.LoginUser(self.userId.get(), self.password.get()))
         self.confirmButton.pack(side="bottom")
 
-        self.SideMenu = SideMenu(parent, self.root)        
+        self.sideMenu = SideMenu(parent, self.root)        
 
     def LoginUser(self, id, psw)->None:
         bdd = sqlite3.connect(self.root.BDDPATH)
@@ -306,11 +357,12 @@ class HomeFrame(tk.Frame):
 
         if access:
             print("Acces autorise")
-            #TODO: connecter l'utilisateur
             self.root.createUserSession(id)
             self.root.CreateStadiumFrames()
             self.root.show_frame("StadiumList")
             self.root.frames["StadiumList"].ShowButtons()
+            self.sideMenu.ChangeFrame("AccountMenu")
+            self.sideMenu.frames["AccountMenu"].RefreshText(self.root.client.GetClientId())
             return
         else:
             print("Hehe non")
@@ -388,7 +440,7 @@ class StadiumFrameTemplate(tk.Frame):
     def __init__(self, parent:tk.Frame, root:App, nomStade:str, dimentions):
 
         # initialises Frame
-        tk.Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent, highlightbackground="black", highlightthickness=1)
         self.root = root
         self.name = nomStade
 
@@ -398,20 +450,25 @@ class StadiumFrameTemplate(tk.Frame):
         
         self.graphImage = self.createGraph(self.stade.getTemp())
         self.graphLabel = tk.Label(self, image=self.graphImage)
-        self.graphLabel.pack(side="left")
 
-        self.refreshGraphButton = tk.Button(self, text="Refresh", command=self.updateGraph, font=("Helvetica", 25))
-        self.refreshGraphButton.pack(side="right", padx=30, pady=30)
+        self.calendar = tkcalendar.Calendar(self, locale="fr")
+
+        
+        self.graphLabel.pack(side="left")
+        self.calendar.pack()
+
+        #self.refreshGraphButton = tk.Button(self, text="Refresh", command=self.updateGraph, font=("Helvetica", 25))
+        #self.refreshGraphButton.pack(side="right", padx=30, pady=30)
 
 
     def createGraph(self, data)->Image:
         """
         returns image to show
         """
-        imageData = np.array(gaussian_filter([[[0,0,(element+20)*7] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
+        imageData = np.array(gaussian_filter([[[0,(element+20)*7,0] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
 
         matim.imsave("./temp/tempGraph.png", imageData)
-        image = Image.open("./temp/tempGraph.png").resize((500, 250))
+        image = Image.open("./temp/tempGraph.png").resize((250, 125))
 
         photo = ImageTk.PhotoImage(image)
 
@@ -442,13 +499,22 @@ class StadiumListFrame(tk.Frame):
         self.createStadiumBUtton = ttk.Button(self, text="Creer un nouveau stade", command=lambda : root.show_frame("CreateStadium"))
         self.createStadiumBUtton.pack(side="right")
 
+        self.shownButtons:list[ttk.Button] = []
+
     def ShowButtons(self)->None:
+
+        # On supprime les boutons affichés pour les remplacer
+        for i in range(len(self.shownButtons)):
+            item = self.shownButtons.pop(0)
+            item.destroy()
+
         self.stadiumsToShow = self.root.client.GetClientStadiums()
-        print(self.stadiumsToShow)
+
+        #print(self.stadiumsToShow)
         for stadium in self.stadiumsToShow:
             button = ttk.Button(self.displayWidget, text=stadium, command= lambda : self.root.show_frame(stadium))
             button.pack()
-        #self.root.update_idletasks()
+            self.shownButtons.append(button)
 
         
 if __name__ == "__main__":
