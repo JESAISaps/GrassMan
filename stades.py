@@ -182,17 +182,40 @@ class Stade:
         if self.meteo == "pluie" or self.meteo == "neige":
             return("closed")
         else :
-            return("open")  
-    def GetIdStade(self):
+            return("open")
+          
+    def GetIdStade(self,bddstade):
         bddstade=sqlite3.connect("./data/bddstade.db")
         bdd=bddstade.cursor()
         idstade=bdd.execute("Select IdStade from Stade where Nom='"+self.nom+"'").fetchall()
         return idstade[0][0]
-     
+    
+    def associerdatetemperature(self,bddstade):
+        bdd=bddstade.cursor()
+        listejour=bdd.execute('Select Jour from Temperature').fetchall()
+        if listejour==[]:
+            return 1
+        else:
+            return listejour[len(listejour)-1][0]+1
+        
+    def recupidcapteur(self,x,y,idstade,bddstade):
+        bdd=bddstade.cursor()
+        idcapteur=bdd.execute('Select IdCapteurs from Capteurs where PositionX= '+str(x)+' and PositionY= '+str(y)+' and IdStade= '+str(idstade)).fetchall()
+        return idcapteur[0][0]
+        
+    def ImportTemperature(self,listetemp,bddstade,nomstade,idstade):
+        jour=self.associerdatetemperature(bddstade)
+        bdd=bddstade.cursor()
+        for ligne in range (len(listetemp)):
+            for colonne in range(len(listetemp[ligne])):
+                    idcapteur=self.recupidcapteur(ligne,colonne,idstade,bddstade)
+                    bdd.execute('INSERT INTO Temperature values ('+str(jour)+','+str(listetemp[ligne][colonne])+','+str(idcapteur)+')')
+
+        
 
 # condition vraie seulement si ce script est celui qui a ete run, Faux si il est run dans un import
 if __name__ == "__main__":
     s = Stade("Velodrome",(50,100),"hiver")
     s.CreateFirstTempMap("hiver")
-
+    s.ImportTemperature(s.CreateFirstTempMap("hiver"),    bdd = sqlite3.connect("./data/bddstade.db"))
     print(s.moyenneTemp(s.CreateFirstTempMap("hiver")))
