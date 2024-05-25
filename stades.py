@@ -1,17 +1,18 @@
-from random import randint, choice, uniform
-from math import floor
-import sqlite3
+from random import choice, uniform
+from datetime import datetime, timedelta
+import calendar
+from sqlite3 import Connection
+
 class Stade:
 
     def __init__(self, nom:str, dimensions) -> None:
         self.nom = nom
         self.longueur = 100
         self.largeur = 50
-        self.temperature1 = self.CreateTemp([1,0,2018])
-        self.ensoleillement = self.soleil()
+
         self.meteo = self.createMeteo()
 
-        self.capteurs = [[(i, j) for j in range(dimensions[0]) for i in range(dimensions[1])]]
+        self.capteurs = [[(i, j) for j in range(dimensions[0]) for i in range(dimensions[1])]]    
 
     def createBlankStadium(self, x, y):
         """
@@ -28,15 +29,6 @@ class Stade:
                         if (self.temperature1[i][k]) >=25 :
                             return True 
         return False
-    
-    def CreateTemp(self,Date):
-        Moyenne=[3.7,4.4,8.1,11.7,15.6,20.2,22.6,22.1,18,13.6,8,4.5]
-        Mois=Date[1]
-        Jour=Date[0]
-        TempDepart=Moyenne[Mois]+uniform(-0.4,0.4)
-        if Mois!=11:
-            TempDepart=TempDepart+(Moyenne[Mois+1]+uniform(-0.2,0.2)-TempDepart)*Jour/31
-        return TempDepart
 
     def createMeteo(self):
         """""
@@ -89,4 +81,3 @@ class Stade:
 # condition vraie seulement si ce script est celui qui a ete run, Faux si il est run dans un import
 if __name__ == "__main__":
     s = Stade("Velodrome",(50,100))
-    print(s.CreateTemp((2,5)))

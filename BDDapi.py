@@ -1,6 +1,8 @@
 import bcrypt
 import stades
 import sqlite3
+from datetime import datetime, timedelta
+from random import uniform
 
 def connection(bdd, id,mdp):
     bddstade = bdd.cursor()
@@ -84,6 +86,46 @@ def importtemperature(listetemp,bddstade,nomstade,idstade):
         for colonne in range(len(listetemp[ligne])):
                 idcapteur=recupidcapteur(ligne,colonne,idstade,bddstade)
                 bdd.execute('INSERT INTO Temperature values ('+str(jour)+','+str(listetemp[ligne][colonne])+','+str(idcapteur)+');')
+
+def InitializeNewStadium(bdd, name):
+    """
+    Creates the temps since 2000, is only called from outside on stadium creation
+    """
+    passedDays= CreateDaysHistory()
+    temps = CreateOldTemps(passedDays)
+    AddOldTempsToDB(bdd, temps, name)
+    
+def CreateDaysHistory():
+    rep = []
+    for year in range(2000, datetime.now().year + 1):
+        start_date=datetime(year, 1, 1)
+        end_date=datetime(year, 12, 31)
+        d=start_date
+        while d <= end_date:
+            rep.append(d)
+            d += timedelta(days=1)
+    return rep
+
+def AddOldTempsToDB(bdd:sqlite3.Connection, temps, name:str):
+    bddstade = bdd.cursor()
+    command = "INSERT INTO Temperature VALUES (?, ?, ?);"
+    for day in temps:
+        bddstade.execute(command, (name, *day))
+
+def CreateOldTemps(passedDays):
+    rep = []
+    for day in passedDays:
+        rep.append((day, CreateTemp((day.day, day.month))))
+    return rep
+    
+def CreateTemp(Date):
+    Moyenne=[3.7,4.4,8.1,11.7,15.6,20.2,22.6,22.1,18,13.6,8,4.5]
+    Mois=Date[1]-1 # On fait -1 car les dates commencent a 1
+    Jour=Date[0]-1
+    TempDepart=Moyenne[Mois]+uniform(-0.4,0.4)
+    if Mois!=11:
+        TempDepart=TempDepart+(Moyenne[Mois+1]+uniform(-0.2,0.2)-TempDepart)*Jour/31
+    return TempDepart
 
 if __name__ == "__main__":
     #password = "HelloWorld".encode("utf-8")

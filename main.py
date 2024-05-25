@@ -420,7 +420,10 @@ class CreateStadiumFrame(tk.Frame):
         elif self.CheckValues(): #if everything is good
 
             # Add Stadium to BDD
-            BDDapi.NewStadium(bdd, self.stadiumName.get(), (self.xDim.get(), self.yDim.get()), int(self.xDim.get())*int(self.yDim.get()), self.root.client.GetClientId())
+            BDDapi.NewStadium(bdd, self.stadiumName.get(), (int(self.xDim.get()), int(self.yDim.get())), int(self.xDim.get())*int(self.yDim.get()), self.root.client.GetClientId())
+            # Create Temps since 2000 for new Stadium
+            BDDapi.InitializeNewStadium(bdd, self.stadiumName.get())
+
             bdd.commit()
             # Creates Stadium Frame
             self.root.AddStadiumFrame(self.stadiumName.get(), (int(self.xDim.get()), int(self.yDim.get())))
@@ -464,16 +467,15 @@ class StadiumFrameTemplate(tk.Frame):
         self.name = nomStade
 
         #create the stadium we'll get data from
-        self.stade = Stade(nomStade, dimentions, "hiver")
-        #TODO: Add stadium to BDD, with client id
+        self.stade = Stade(nomStade, dimentions)
         
-        self.graphImage = self.createGraph(self.stade.getTemp())
-        self.graphLabel = tk.Label(self, image=self.graphImage)
+        #self.graphImage = self.createGraph(self.stade.getTemp())
+        #self.graphLabel = tk.Label(self, image=self.graphImage)
 
         self.calendar = tkcalendar.Calendar(self, locale="fr")
 
         
-        self.graphLabel.pack(side="left")
+        #self.graphLabel.pack(side="left")
         self.calendar.pack()
 
         #self.refreshGraphButton = tk.Button(self, text="Refresh", command=self.updateGraph, font=("Helvetica", 25))
