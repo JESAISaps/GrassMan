@@ -69,7 +69,7 @@ class App(Tk):
             print("Error, existing session running")
             return
         else:
-            self.client = User(self, id)    
+            self.client = Client(self, id)    
     
     def CreateStadiumFrames(self):
 
@@ -86,7 +86,7 @@ class App(Tk):
                 self.frames.pop(stadiumName)
 
 
-class User:
+class Client:
 
     def __init__(self, root:App, id=None):
         self.root = root
@@ -102,7 +102,7 @@ class User:
     def RefreshClientStadiums(self)->list[str]:
 
         bdd = sqlite3.connect(self.root.BDDPATH)
-        rep = BDDapi.GetClientStadiums(bdd, self.root.client)
+        rep = BDDapi.GetClientStadiums(bdd, self.id)
         self.stadiumList = rep
         bdd.close()
         return rep
@@ -410,11 +410,29 @@ class CreateStadiumFrame(tk.Frame):
         """
         Calls funtion to check in inputs are correct and calls App method to add the stadium
         """
-        if self.CheckValues():
-            self.root.AddStadiumFrame(self.stadiumName.get(), (int(self.xDim.get()), int(self.yDim.get())))
-            self.root.show_frame(self.stadiumName.get())
-        else:
+        bdd = sqlite3.connect(self.root.BDDPATH)
+
+        if BDDapi.CheckIfStadiumExists(bdd, self.stadiumName.get(), self.root.client.GetClientId()): # Check for duplicate name
+            self.ErrorLabel.configure(text="Ce nom de stade existe deja !")
+            self.update_idletasks()
             self.ErrorLabel.pack(side="bottom")
+        elif self.CheckValues(): #if everything is good
+
+            # Add Stadium to BDD
+            BDDapi.NewStadium(bdd, self.stadiumName.get(), (self.xDim.get(), self.yDim.get()), int(self.xDim.get())*int(self.yDim.get()), self.root.client.GetClientId())
+            bdd.commit()
+            # Creates Stadium Frame
+            self.root.AddStadiumFrame(self.stadiumName.get(), (int(self.xDim.get()), int(self.yDim.get())))
+            # Shows new stadium Frame
+            self.root.show_frame(self.stadiumName.get())
+
+            
+        else:
+            self.ErrorLabel.configure(text="Veuillez verifier vos entrées")
+            self.update_idletasks()
+            self.ErrorLabel.pack(side="bottom")
+
+        bdd.close()
     
     def CheckValues(self)->bool:
         isGood = True
@@ -422,7 +440,7 @@ class CreateStadiumFrame(tk.Frame):
         # name must not be empty or just spaces
         if self.stadiumName.get().replace(" ", "") == "":
             isGood = False
-            self.newStadiumNameEntry.delete(0, "end")
+            self.newStadiumNameEntry.delete(0, "end") # Removes text from entry
         try:
             # dimensions must not be empty or NaN
             self.dimensionX = int(self.xDim.get())
@@ -440,7 +458,7 @@ class StadiumFrameTemplate(tk.Frame):
     def __init__(self, parent:tk.Frame, root:App, nomStade:str, dimentions):
 
         # initialises Frame
-        tk.Frame.__init__(self, parent, highlightbackground="black", highlightthickness=1)
+        tk.Frame.__init__(self, parent, width=500, height=root.winfo_height(), highlightbackground="black", highlightthickness=1)
         self.root = root
         self.name = nomStade
 
@@ -460,6 +478,7 @@ class StadiumFrameTemplate(tk.Frame):
         #self.refreshGraphButton = tk.Button(self, text="Refresh", command=self.updateGraph, font=("Helvetica", 25))
         #self.refreshGraphButton.pack(side="right", padx=30, pady=30)
 
+        self.pack_propagate(False)
 
     def createGraph(self, data)->Image:
         """

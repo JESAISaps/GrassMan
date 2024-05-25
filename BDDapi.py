@@ -20,7 +20,7 @@ def CheckIfIdExists(bdd, id):
     #bdd = sqlite3.connect("./data/bddstade.db")
     bddstade = bdd.cursor()
 
-    clientidentifiant=bddstade.execute('SELECT identifiant FROM client').fetchall()
+    clientidentifiant=bddstade.execute('SELECT identifiant FROM client;').fetchall()
     #print(clientidentifiant)
     knownIdList = [ligne[0] for ligne in clientidentifiant]
     #print(knownIdList)
@@ -37,13 +37,33 @@ def nouveauclient(bdd, id,name,name1,motdepasse):
     bddstade.execute(command, (name1, name, id, str(bcrypt.hashpw(psw, bcrypt.gensalt()))[2:-1]))
     #bdd.close()
 
-def GetClientStadiums(bdd, client)->list[str]:
-    #TODO: Choper le nom des stades qui apartiennent au client et la renvoyer
-    return ["Velodrome", "Chez ton pere"] #en attendant
+def NewStadium(bdd:sqlite3.Connection, name:str, size:tuple, nbCapteurs:int, clientID:str):
+    bddStade = bdd.cursor()
+
+    command = "INSERT INTO stade VALUES (?, ?, ?, ?);"
+    bddStade.execute(command, (name, str(size)[1:-1], nbCapteurs, clientID))
+
+def CheckIfStadiumExists(bdd:sqlite3.Connection, name:str, clientID:str):
+    bddstade = bdd.cursor()
+
+    # Returns True if Stadium name already taken
+    return name in [ligne[0] for ligne in bddstade.execute('SELECT Nom FROM stade WHERE clientID = ?;', (clientID,)).fetchall()]
+
+def GetClientStadiums(bdd:sqlite3.Connection, clientID:str)->list[str]:
+    """
+    Renvoie les stades qui appartiennent au client clientID
+    """
+    bddStade = bdd.cursor()
+    rep = []
+    command = "SELECT Nom FROM stade WHERE clientID = ?;"
+    temp = bddStade.execute(command, (clientID,)).fetchall()
+    for stadium in temp:
+        rep.append(stadium)
+    return rep
 
 def associerdatetemperature(bddstade):
     bdd=bddstade.cursor()
-    listejour=bdd.execute('Select Jour from Temperature').fetchall()
+    listejour=bdd.execute('Select Jour from Temperature;').fetchall()
     if listejour==[]:
         return 1
     else:
@@ -62,7 +82,7 @@ def importtemperature(listetemp,bddstade,nomstade,idstade):
         print(len(listetemp[ligne]))
         for colonne in range(len(listetemp[ligne])):
                 idcapteur=recupidcapteur(ligne,colonne,idstade,bddstade)
-                bdd.execute('INSERT INTO Temperature values ('+str(jour)+','+str(listetemp[ligne][colonne])+','+str(idcapteur)+')')
+                bdd.execute('INSERT INTO Temperature values ('+str(jour)+','+str(listetemp[ligne][colonne])+','+str(idcapteur)+');')
 
 if __name__ == "__main__":
     #password = "HelloWorld".encode("utf-8")
