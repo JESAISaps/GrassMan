@@ -13,11 +13,12 @@ def AssocierDateTemperature(bddstade,Stade):
         
 Moyenne=[3.7,4.4,8.1,11.7,15.6,20.2,22.6,22.1,18,13.6,8,4.5]
 Precipitation=[27,26.6,30,31.8,31.8,23.7,20.7,20.7,32.2,37,46.6,27]
+
 def RecupIdcapteur(x,y,idstade,bddstade):
     bdd=bddstade.cursor()
     idcapteur=bdd.execute('Select IdCapteurs from Capteurs where PositionX= '+str(x)+' and PositionY= '+str(y)+' and IdStade= '+str(idstade)).fetchall()
     return idcapteur[0][0]
-        
+
 def ImportTemperature(listetemp,bddstade,Stade):
         jour=AssocierDateTemperature(bddstade,Stade)
         bdd=bddstade.cursor()
@@ -73,6 +74,6 @@ if __name__ == "__main__":
     bdd = sqlite3.connect("./data/bddstade.db")
     for k in range(5):
         Temperature(s,bdd,Moyenne)
-        ImportTemperature(Temperature(s,bdd,Moyenne),bdd,s)
+        #ImportTemperature(Temperature(s,bdd,Moyenne),bdd,s)
     bdd.commit()
     bdd.close()

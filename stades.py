@@ -5,14 +5,16 @@ class Stade:
 
     def __init__(self, nom:str, dimensions, saison) -> None:
         self.nom = nom
-        self.longueur = dimensions[0]
-        self.largeur = dimensions[1]
+        self.longueur = 100
+        self.largeur = 50
         self.temperature1 = self.CreateFirstTempMap(saison)
         self.ensoleillement = self.soleil()
         self.meteo = self.createMeteo()
         self.isRoofClosed = self.changeRoofState()
         self.chauffage = self.gestionchauffage()
         self.arrosage = self.gestionarrosage()
+
+        self.capteurs = [[(i, j) for j in range(dimensions[0]) for i in range(dimensions[1])]]
 
     def createBlankStadium(self, x, y):
         """
@@ -185,10 +187,11 @@ class Stade:
             return("open")
           
     def GetIdStade(self,bddstade):
-        bddstade=sqlite3.connect("./data/bddstade.db")
-        bdd=bddstade.cursor()
-        idstade=bdd.execute("Select IdStade from Stade where Nom='"+self.nom+"'").fetchall()
-        return idstade[0][0]
+        #bddstade=sqlite3.connect("./data/bddstade.db")
+        #bdd=bddstade.cursor()
+        #idstade=bdd.execute("Select IdStade from Stade where Nom='"+self.nom+"'").fetchall()
+        #return idstade[0][0]
+        return self.nom
     
     def associerdatetemperature(self,bddstade):
         bdd=bddstade.cursor()

@@ -416,6 +416,7 @@ class CreateStadiumFrame(tk.Frame):
             self.ErrorLabel.configure(text="Ce nom de stade existe deja !")
             self.update_idletasks()
             self.ErrorLabel.pack(side="bottom")
+            
         elif self.CheckValues(): #if everything is good
 
             # Add Stadium to BDD

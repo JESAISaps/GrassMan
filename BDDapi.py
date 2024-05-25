@@ -1,6 +1,7 @@
 import bcrypt
 import stades
 import sqlite3
+
 def connection(bdd, id,mdp):
     bddstade = bdd.cursor()
 
