@@ -5,9 +5,11 @@ from matplotlib import image as matim
 import numpy as np
 from PIL import Image, ImageTk
 import BDDapi
+import Graphs
 import sqlite3
 from tkscrolledframe import ScrolledFrame
 import tkcalendar
+from datetime import datetime
 
 from stades import Stade
 from scipy.ndimage import gaussian_filter
@@ -62,7 +64,6 @@ class App(Tk):
             return
 
         self.frames[name] = StadiumFrameTemplate(self.container, self, name, dimensions)
-        #self.frames[name].pack(expand=True)
 
     def createUserSession(self, id):
         if self.client is not None:
@@ -74,6 +75,7 @@ class App(Tk):
     def CreateStadiumFrames(self):
 
         stadiumList = self.client.GetClientStadiums()
+        print(stadiumList)
         for stadium in stadiumList:
             self.AddStadiumFrame(stadium)
 
@@ -289,7 +291,7 @@ class SideMenu(tk.Frame):
             elif BDDapi.CheckIfIdExists(bdd, self.id.get()):
                 self.DuplacateId()
             else:        
-                BDDapi.nouveauclient(bdd, id, name2, name, psw1)
+                BDDapi.Nouveauclient(bdd, id, name2, name, psw1)
                 bdd.commit()
                 self.UserCreated()
             bdd.close()
@@ -468,43 +470,38 @@ class StadiumFrameTemplate(tk.Frame):
 
         #create the stadium we'll get data from
         self.stade = Stade(nomStade, dimentions)
+        self.calendar = tkcalendar.Calendar(self, locale="fr", maxdate=datetime.now())
+        self.calendar.bind("<<CalendarSelected>>", lambda e: self.UpdateGraph())
+        try:
+            self.graphImage = ImageTk.PhotoImage(Image.open("./temp/tempGraph.png"))
+        except:
+            self.graphImage = ImageTk.PhotoImage(Image.open("./data/plus.png"))
         
-        #self.graphImage = self.createGraph(self.stade.getTemp())
-        #self.graphLabel = tk.Label(self, image=self.graphImage)
+        self.graphLabel = tk.Label(self, image=self.graphImage)
 
-        self.calendar = tkcalendar.Calendar(self, locale="fr")
+        self.calendar.pack(side="right", anchor="se")
 
+        tk.Label(self, text=self.name).pack()
         
-        #self.graphLabel.pack(side="left")
-        self.calendar.pack()
-
         #self.refreshGraphButton = tk.Button(self, text="Refresh", command=self.updateGraph, font=("Helvetica", 25))
         #self.refreshGraphButton.pack(side="right", padx=30, pady=30)
 
         self.pack_propagate(False)
 
-    def createGraph(self, data)->Image:
+    def UpdateGraph(self):
         """
         returns image to show
         """
-        imageData = np.array(gaussian_filter([[[0,(element+20)*7,0] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
+        # cette ligne est trop belle pour etre enlevée
+        #imageData = np.array(gaussian_filter([[[0,(element+20)*7,0] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
+        print(self.name)
+        self.graphLabel.pack(side="right", anchor="ne")
+        bdd = sqlite3.connect(self.root.BDDPATH)
+        med = BDDapi.GetMediumTemp(bdd, self.name, self.calendar.selection_get())
+        self.graph = Graphs.GetGraph(med)
 
-        matim.imsave("./temp/tempGraph.png", imageData)
-        image = Image.open("./temp/tempGraph.png").resize((250, 125))
-
-        photo = ImageTk.PhotoImage(image)
-
-        return photo
-
-    def updateGraph(self)->None:
-
-        #on met a jour les données de temperature
-        self.stade.modifTemp()
-
-        #on change l'image du graphe
-        self.graphImage = self.createGraph(self.stade.getTemp())        
-        self.graphLabel.configure(image=self.graphImage)
-        self.root.update_idletasks()
+        self.graphLabel.configure(image=self.graph)
+        self.update_idletasks()
 
 
 class StadiumListFrame(tk.Frame):
@@ -532,9 +529,9 @@ class StadiumListFrame(tk.Frame):
 
         self.stadiumsToShow = self.root.client.GetClientStadiums()
 
-        #print(self.stadiumsToShow)
         for stadium in self.stadiumsToShow:
-            button = ttk.Button(self.displayWidget, text=stadium, command= lambda : self.root.show_frame(stadium))
+
+            button = ttk.Button(self.displayWidget, text=stadium, command= lambda stadium=stadium: self.root.show_frame(stadium))
             button.pack()
             self.shownButtons.append(button)
 

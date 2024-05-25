@@ -16,24 +16,17 @@ def connection(bdd, id,mdp):
         else:
             return False
     return None
-        
-    #bdd.close()
 
 def CheckIfIdExists(bdd, id):
-    #bdd = sqlite3.connect("./data/bddstade.db")
     bddstade = bdd.cursor()
 
     clientidentifiant=bddstade.execute('SELECT identifiant FROM client;').fetchall()
-    #print(clientidentifiant)
     knownIdList = [ligne[0] for ligne in clientidentifiant]
-    #print(knownIdList)
-    #print(id)
     if id in knownIdList:
         return True
     return False
 
-def nouveauclient(bdd, id,name,name1,motdepasse):
-    #bdd = sqlite3.connect("./data/bddstade.db")
+def Nouveauclient(bdd, id,name,name1,motdepasse):
     psw = motdepasse.encode("utf-8")
     bddstade = bdd.cursor()
     command = "INSERT INTO client VALUES (?, ?, ?, ?);"
@@ -61,7 +54,7 @@ def GetClientStadiums(bdd:sqlite3.Connection, clientID:str)->list[str]:
     command = "SELECT Nom FROM stade WHERE clientID = ?;"
     temp = bddStade.execute(command, (clientID,)).fetchall()
     for stadium in temp:
-        rep.append(stadium)
+        rep.append(stadium[0])
     return rep
 
 def associerdatetemperature(bddstade):
@@ -126,6 +119,16 @@ def CreateTemp(Date):
     if Mois!=11:
         TempDepart=TempDepart+(Moyenne[Mois+1]+uniform(-0.2,0.2)-TempDepart)*Jour/31
     return TempDepart
+
+def GetMediumTemp(bdd:sqlite3.Connection, stadium:str, day:datetime):
+    bddStade = bdd.cursor()
+
+    command = "SELECT Temperature from Temperature WHERE Stade = ? AND Jour = ?;"
+    #print(str(day) + " 00:00:00")
+    #print(str(stadium))
+    rep = bddStade.execute(command, (stadium, str(day) + " 00:00:00")).fetchall()[0][0]
+    #print(rep)
+    return rep
 
 if __name__ == "__main__":
     #password = "HelloWorld".encode("utf-8")
