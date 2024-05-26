@@ -31,7 +31,7 @@ class App(Tk):
         self.container.pack(side = "top", fill = "both", expand = True)
         
         # sets default window size
-        self.geometry("720x420")
+        self.geometry("1080x720")
         self.resizable(False, False)
 
         # initializing frames to an empty dict
@@ -115,8 +115,10 @@ class SideMenu(tk.Frame):
 
     def __init__(self, parent, root:App):
         self.root = root
-        self.min_w = 50 # Minimum width of the frame
-        self.max_w = 180 # Maximum width of the frame
+        self.root.update_idletasks()
+        print(self.root.winfo_width(), self.root.winfo_width()//20)
+        self.min_w = self.root.winfo_width()//15 # Minimum width of the frame
+        self.max_w = self.root.winfo_width()//5 # Maximum width of the frame
         self.cur_width = self.min_w # Increasing width of the frame
         self.expanded = False # Check if it is completely exanded
         self.isMoving = False # So we dont interupt the window resizement
@@ -146,7 +148,7 @@ class SideMenu(tk.Frame):
         self.frames["AccountMenu"] = self.AccountMenu(self, root)
 
         self.activeFrame = "ConnectionFrame"
-        self.frames["ConnectionFrame"].pack(expand=True, side="left")
+        self.frames["ConnectionFrame"].pack(fill="none", expand=True, anchor="center")
 
         def SetHasChanged():
             """
@@ -201,13 +203,13 @@ class SideMenu(tk.Frame):
         # sets up new frame
         self.activeFrame = frameName
         frame = self.frames[frameName]
-        frame.pack(expand=True, side="left")
+        if self.expanded : frame.pack(expand=True, side="left")
         frame.tkraise()
 
     def fill(self)->None:
         if self.expanded: # If the frame is extended
 
-            self.frames[self.activeFrame].pack()
+            self.frames[self.activeFrame].pack(fill="none", expand=True, anchor="center")
             # Show everything, hide image
             self.plusImageObject.pack_forget()
             
@@ -221,8 +223,8 @@ class SideMenu(tk.Frame):
     class CreateUserMenu(tk.Frame):
 
         def __init__(self, parent:tk.Frame, root:App):
-
-            tk.Frame.__init__(self, parent, bg='#32cd32',width=50,height=root.winfo_height())
+            parent.update_idletasks()
+            tk.Frame.__init__(self, parent, bg='#32cd32', width=50, height=parent.winfo_height())
 
             self.parent = parent
             self.root = root
@@ -301,7 +303,7 @@ class SideMenu(tk.Frame):
 
         def __init__(self, parent:tk.Frame, root:App):
             
-            tk.Frame.__init__(self, parent, bg='#32cd32', width=50, height=root.winfo_height())
+            tk.Frame.__init__(self, parent, bg='#32cd32', width=50, height=parent.winfo_height())
 
             self.parent:SideMenu = parent
             self.root:App = root
@@ -463,9 +465,9 @@ class CreateStadiumFrame(tk.Frame):
 class StadiumFrameTemplate(tk.Frame):
 
     def __init__(self, parent:tk.Frame, root:App, nomStade:str, dimentions):
-
+        root.update_idletasks()
         # initialises Frame
-        tk.Frame.__init__(self, parent, width=550, height=root.winfo_height(), highlightbackground="black", highlightthickness=1)
+        tk.Frame.__init__(self, parent, width=root.winfo_width()-root.winfo_width()//5, height=root.winfo_height(), highlightbackground="black", highlightthickness=1)
         self.root = root
         self.name = nomStade
 
@@ -476,7 +478,7 @@ class StadiumFrameTemplate(tk.Frame):
 
         tk.Label(self, text=self.name).pack()
 
-        self.graph = Figure(figsize=(3,2), dpi=100)
+        self.graph = Figure(figsize=(5,3), dpi=100)
         self.graphCanvas = FigureCanvasTkAgg(self.graph, master=self)
         self.graphCanvas.draw()
         self.graphCanvas.get_tk_widget().pack(side="top", anchor="ne")
