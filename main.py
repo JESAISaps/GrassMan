@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk, Tk
-#from matplotlib import pyplot as plt
 import numpy as np
 from PIL import Image, ImageTk
 import BDDapi
@@ -8,7 +7,7 @@ import Graphs
 import sqlite3
 from tkscrolledframe import ScrolledFrame
 import tkcalendar
-from datetime import datetime
+from datetime import datetime, timedelta
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -109,7 +108,7 @@ class Client:
         self.stadiumList = rep
         bdd.close()
         return rep
-    
+
 
 class SideMenu(tk.Frame):
 
@@ -473,7 +472,7 @@ class StadiumFrameTemplate(tk.Frame):
 
         #create the stadium we'll get data from
         self.stade = Stade(nomStade, dimentions)
-        self.calendar = tkcalendar.Calendar(self, locale="fr", maxdate=datetime.now())
+        self.calendar = tkcalendar.Calendar(self, locale="fr",day= (datetime.today() - timedelta(days=1)).day, maxdate=datetime.today() - timedelta(days=1))
         self.calendar.bind("<<CalendarSelected>>", lambda e: self.UpdateGraph())
 
         tk.Label(self, text=self.name).pack()
