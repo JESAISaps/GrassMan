@@ -14,6 +14,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from stades import Stade
 from scipy.ndimage import gaussian_filter
 
+# Global var, for colors:
+GREEN = "#32cd32"
+GREY = "#D3D3D3"
 
 class App(Tk):
 
@@ -75,7 +78,7 @@ class App(Tk):
     def CreateStadiumFrames(self):
 
         stadiumList = self.client.GetClientStadiums()
-        print(stadiumList)
+        #print(stadiumList)
         for stadium in stadiumList:
             self.AddStadiumFrame(stadium)
 
@@ -115,7 +118,6 @@ class SideMenu(tk.Frame):
     def __init__(self, parent, root:App):
         self.root = root
         self.root.update_idletasks()
-        print(self.root.winfo_width(), self.root.winfo_width()//20)
         self.min_w = self.root.winfo_width()//15 # Minimum width of the frame
         self.max_w = self.root.winfo_width()//5 # Maximum width of the frame
         self.cur_width = self.min_w # Increasing width of the frame
@@ -129,11 +131,11 @@ class SideMenu(tk.Frame):
 
         self.root.update() # For the width to get updated
 
-        tk.Frame.__init__(self, parent, bg='#32cd32',width=50,height=root.winfo_height())
+        tk.Frame.__init__(self, parent, bg=GREEN,width=50,height=root.winfo_height())
         self.pack(side="right", fill=tk.Y)
 
         
-        self.plusImageObject = tk.Label(self, image=self.plusImage, bg="#32cd32")
+        self.plusImageObject = tk.Label(self, image=self.plusImage, bg=GREEN)
 
 
         self.plusImageObject.pack(fill="none", expand=True)
@@ -223,29 +225,29 @@ class SideMenu(tk.Frame):
 
         def __init__(self, parent:tk.Frame, root:App):
             parent.update_idletasks()
-            tk.Frame.__init__(self, parent, bg='#32cd32', width=50, height=parent.winfo_height())
+            tk.Frame.__init__(self, parent, bg=GREEN, width=50, height=parent.winfo_height())
 
             self.parent = parent
             self.root = root
 
-            self.nameLabel = ttk.Label(self, text="Entrez votre prenom", background="#32cd32")
+            self.nameLabel = ttk.Label(self, text="Entrez votre prenom", background=GREEN)
             self.name = tk.StringVar()
             self.nameEntry = ttk.Entry(self, textvariable=self.name)
 
-            self.name2Label = ttk.Label(self, text="Entrez votre nom : ", background="#32cd32")
+            self.name2Label = ttk.Label(self, text="Entrez votre nom : ", background=GREEN)
             self.name2 = tk.StringVar()
             self.name2Entry = ttk.Entry(self, textvariable=self.name2)
 
-            self.idLabel = ttk.Label(self, text="Créez un identifiant : ", background="#32cd32")
+            self.idLabel = ttk.Label(self, text="Créez un identifiant : ", background=GREEN)
             self.id = tk.StringVar()
             self.idEntry = ttk.Entry(self, textvariable=self.id)
 
             # Creates the entries along with labels
-            self.passwordLabel1 = ttk.Label(self, text="Créez un mot de passe", background='#32cd32')
+            self.passwordLabel1 = ttk.Label(self, text="Créez un mot de passe", background=GREEN)
             self.password1, self.password2 = tk.StringVar(), tk.StringVar()
             self.passwordEntry1 = ttk.Entry(self, textvariable=self.password1, show="•")
 
-            self.passwordLabel2 = ttk.Label(self, text="Confirmez le mot de passe", background='#32cd32')
+            self.passwordLabel2 = ttk.Label(self, text="Confirmez le mot de passe", background=GREEN)
             self.passwordEntry2 = ttk.Entry(self, textvariable=self.password2, show="•")
 
             self.lockMenuButton = ttk.Checkbutton(self, variable=self.parent.isLocked, text="Bloquer le menu")
@@ -302,12 +304,12 @@ class SideMenu(tk.Frame):
 
         def __init__(self, parent:tk.Frame, root:App):
             
-            tk.Frame.__init__(self, parent, bg='#32cd32', width=50, height=parent.winfo_height())
+            tk.Frame.__init__(self, parent, bg=GREEN, width=50, height=parent.winfo_height())
 
             self.parent:SideMenu = parent
             self.root:App = root
 
-            self.NameLabel = ttk.Label(self, text="Default", background="#32cd32")
+            self.NameLabel = ttk.Label(self, text="Default", background=GREEN)
 
             self.LogoutButton = ttk.Button(self, text="Se déconnecter", command=self.Logout)
 
@@ -321,7 +323,6 @@ class SideMenu(tk.Frame):
         def Logout(self):
             self.root.DisconnectClient()
             self.parent.ChangeFrame("ConnectionFrame")
-
 
 class HomeFrame(tk.Frame):
 
@@ -377,8 +378,10 @@ class CreateStadiumFrame(tk.Frame):
 
     def __init__(self, parent:tk.Frame, root:App):
 
+        root.update_idletasks()
         # initialises Frame
-        tk.Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent, width=root.winfo_width()-root.winfo_width()//5, height=root.winfo_height(),
+                           highlightbackground="black", highlightthickness=1, background=GREY)
 
         self.root = root
 
@@ -386,29 +389,65 @@ class CreateStadiumFrame(tk.Frame):
         self.dimensionX = 100
         self.dimensionY = 50
 
-        pageNameLabel = ttk.Label(self, text="Creation Stade")
+        self.nameChoiceFrame = tk.Frame(self, background=GREY)
+
+        pageNameLabel = ttk.Label(self, text="Creation Stade", background=GREY)
         pageNameLabel.pack(side="top")
 
-        self.stadiumNameLabel = ttk.Label(self, text="Nom du nouveau stade: ")
-        self.stadiumNameLabel.pack()
+        self.stadiumNameLabel = ttk.Label(self.nameChoiceFrame, text="Nom du nouveau stade: ", background=GREY)
+        self.stadiumNameLabel.pack(side="top", pady=20)
 
         self.stadiumName = tk.StringVar()
-        self.newStadiumNameEntry = ttk.Entry(self, textvariable=self.stadiumName)
-        self.newStadiumNameEntry.pack()
+        self.newStadiumNameEntry = ttk.Entry(self.nameChoiceFrame, textvariable=self.stadiumName)
+        self.newStadiumNameEntry.pack(side="bottom")
         self.newStadiumNameEntry.focus()
 
-        self.xDim = tk.StringVar()
-        self.yDim = tk.StringVar()
-        self.dimensionEntryX = ttk.Entry(self, textvariable=self.xDim)
-        self.dimensionEntryY = ttk.Entry(self, textvariable=self.yDim)
+        self.CapteursChoiceFrame = tk.Frame(self, background=GREY)
 
-        self.dimensionEntryX.pack(side="left")
-        self.dimensionEntryY.pack(side="right")
+        self.stadiumImage = Graphs.DrawStadiumExample(1, 1)
+        self.StadiumImageLabel = tk.Label(self.CapteursChoiceFrame, image=self.stadiumImage)
+
+        self.XFrame = tk.Frame(self.CapteursChoiceFrame, highlightbackground="black", highlightthickness=1)
+        self.YFrame = tk.Frame(self.CapteursChoiceFrame, highlightbackground="black", highlightthickness=1)
+
+        self.xDim = tk.IntVar(value=1)
+        self.xDim.trace_add("write", lambda e,a,z: self.RefreshStadium())
+        self.yDim = tk.IntVar(value=1)
+        self.yDim.trace_add("write", lambda e,a,z: self.RefreshStadium())
+        self.dimensionBoxX = ttk.Combobox(self.XFrame, textvariable=self.xDim)
+        self.dimensionBoxY = ttk.Combobox(self.YFrame, textvariable=self.yDim)    
+
+        self.dimXLabel = ttk.Label(self.XFrame, text="Capteurs sur la longeur :")
+        self.dimYLabel = ttk.Label(self.YFrame, text="Capteurs sur la largeur :")
+
+        self.dimensionBoxX["values"] = [i for i in range(1, 21)]
+        self.dimensionBoxY["values"] = [i for i in range(1, 11)]
+        
+        self.dimXLabel.pack(side="top")
+        self.dimYLabel.pack(side="top")
+
+        self.dimensionBoxX.pack(side="bottom")
+        self.dimensionBoxY.pack(side="bottom")
+
+        self.XFrame.pack(side="left")
+        self.YFrame.pack(side="right", padx=50)
+
+        self.StadiumImageLabel.pack(side="bottom", pady=(50, 0))
+
+        self.nameChoiceFrame.pack(side="left", padx=(100, 0))
+        self.CapteursChoiceFrame.pack(side="right", anchor="ne", pady=(100, 0))
 
         self.confirmButton = ttk.Button(self, text="Confirmer", command=self.CreateNewStadium)
-        self.confirmButton.pack()
+        self.confirmButton.pack(side="bottom", anchor="s")
 
         self.ErrorLabel = ttk.Label(self, text = "Veuillez verifier vos entrées")
+
+        self.pack_propagate(False)
+    
+    def RefreshStadium(self):
+        self.stadiumImage = Graphs.DrawStadiumExample(self.xDim.get(), self.yDim.get())
+        self.StadiumImageLabel.configure(image=self.stadiumImage)
+        self.update_idletasks()
     
     def CreateNewStadium(self)->None:
         """
@@ -419,7 +458,7 @@ class CreateStadiumFrame(tk.Frame):
         if BDDapi.CheckIfStadiumExists(bdd, self.stadiumName.get(), self.root.client.GetClientId()): # Check for duplicate name
             self.ErrorLabel.configure(text="Ce nom de stade existe deja !")
             self.update_idletasks()
-            self.ErrorLabel.pack(side="bottom")
+            self.ErrorLabel.pack(side="left", anchor="sw")
             
         elif self.CheckValues(): #if everything is good
 
@@ -433,12 +472,11 @@ class CreateStadiumFrame(tk.Frame):
             self.root.AddStadiumFrame(self.stadiumName.get(), (int(self.xDim.get()), int(self.yDim.get())))
             # Shows new stadium Frame
             self.root.show_frame(self.stadiumName.get())
-
             
         else:
             self.ErrorLabel.configure(text="Veuillez verifier vos entrées")
             self.update_idletasks()
-            self.ErrorLabel.pack(side="bottom")
+            self.ErrorLabel.pack(side="left", anchor="sw")
 
         bdd.close()
     
@@ -455,8 +493,8 @@ class CreateStadiumFrame(tk.Frame):
             self.dimensionY = int(self.xDim.get())
         except:
             isGood = False
-            self.dimensionEntryX.delete(0, 'end')
-            self.dimensionEntryY.delete(0, 'end')
+            self.dimensionBoxX.delete(0, 'end')
+            self.dimensionBoxY.delete(0, 'end')
             
         return isGood
 
