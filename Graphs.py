@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 def CreateTemp(heure, dayMedium)->int:
     # Technique de l'autruche: les chances que daymedium == 0
     # son tellement faibles qu'on va ignorer le bug au lieu de le fix
-    print(heure, dayMedium)
+    #print(heure, dayMedium)
     return dayMedium - ((heure - 12)**2)/dayMedium
 
 def DrawGraph(temps:list[tuple]):

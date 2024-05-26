@@ -120,7 +120,7 @@ def CreateTemp(Date):
         TempDepart=TempDepart+(Moyenne[Mois+1]+uniform(-0.2,0.2)-TempDepart)*Jour/31
     return TempDepart
 
-def GetMediumTemp(bdd:sqlite3.Connection, stadium:str, day:datetime):
+def GetMediumTemp(bdd:sqlite3.Connection, stadium:str, day:datetime) -> int:
     bddStade = bdd.cursor()
 
     command = "SELECT Temperature from Temperature WHERE Stade = ? AND Jour = ?;"

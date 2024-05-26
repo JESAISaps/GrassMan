@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, Tk
 #from matplotlib import pyplot as plt
-from matplotlib import image as matim
 import numpy as np
 from PIL import Image, ImageTk
 import BDDapi
@@ -10,6 +9,8 @@ import sqlite3
 from tkscrolledframe import ScrolledFrame
 import tkcalendar
 from datetime import datetime
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from stades import Stade
 from scipy.ndimage import gaussian_filter
@@ -464,7 +465,7 @@ class StadiumFrameTemplate(tk.Frame):
     def __init__(self, parent:tk.Frame, root:App, nomStade:str, dimentions):
 
         # initialises Frame
-        tk.Frame.__init__(self, parent, width=500, height=root.winfo_height(), highlightbackground="black", highlightthickness=1)
+        tk.Frame.__init__(self, parent, width=550, height=root.winfo_height(), highlightbackground="black", highlightthickness=1)
         self.root = root
         self.name = nomStade
 
@@ -472,16 +473,16 @@ class StadiumFrameTemplate(tk.Frame):
         self.stade = Stade(nomStade, dimentions)
         self.calendar = tkcalendar.Calendar(self, locale="fr", maxdate=datetime.now())
         self.calendar.bind("<<CalendarSelected>>", lambda e: self.UpdateGraph())
-        try:
-            self.graphImage = ImageTk.PhotoImage(Image.open("./temp/tempGraph.png"))
-        except:
-            self.graphImage = ImageTk.PhotoImage(Image.open("./data/plus.png"))
-        
-        self.graphLabel = tk.Label(self, image=self.graphImage)
+
+        tk.Label(self, text=self.name).pack()
+
+        self.graph = Figure(figsize=(3,2), dpi=100)
+        self.graphCanvas = FigureCanvasTkAgg(self.graph, master=self)
+        self.graphCanvas.draw()
+        self.graphCanvas.get_tk_widget().pack(side="top", anchor="ne")
 
         self.calendar.pack(side="right", anchor="se")
 
-        tk.Label(self, text=self.name).pack()
         
         #self.refreshGraphButton = tk.Button(self, text="Refresh", command=self.updateGraph, font=("Helvetica", 25))
         #self.refreshGraphButton.pack(side="right", padx=30, pady=30)
@@ -494,14 +495,23 @@ class StadiumFrameTemplate(tk.Frame):
         """
         # cette ligne est trop belle pour etre enlevée
         #imageData = np.array(gaussian_filter([[[0,(element+20)*7,0] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
-        print(self.name)
-        self.graphLabel.pack(side="right", anchor="ne")
+        
+        self.graph.clf()
+        self.axes = self.graph.add_subplot(111)
+        hours = np.arange(24)
         bdd = sqlite3.connect(self.root.BDDPATH)
-        med = BDDapi.GetMediumTemp(bdd, self.name, self.calendar.selection_get())
-        self.graph = Graphs.GetGraph(med)
+        dayMedium = BDDapi.GetMediumTemp(bdd, self.name, self.calendar.selection_get())
+        temps = np.array([Graphs.CreateTemp(hour, dayMedium) for hour in hours])
+        #print(hours, temps)
+        self.axes.plot(hours, temps)
+        
+        # set fixed axes limits
+        self.axes.set_xlim(0, 23)
+        self.axes.set_ylim(-5, 30)
 
-        self.graphLabel.configure(image=self.graph)
-        self.update_idletasks()
+        self.graphCanvas.draw()
+
+        #print("Tried to update graph")
 
 
 class StadiumListFrame(tk.Frame):

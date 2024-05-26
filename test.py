@@ -1,40 +1,26 @@
-#!/usr/bin/env python3
+import tkinter as tk
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import numpy as np
 
-from tkinter import *
-from tkscrolledframe import ScrolledFrame
+# Créer une fenêtre Tkinter
+window = tk.Tk()
+window.title("Matplotlib dans Tkinter")
 
-# Create a root window
-root = Tk()
+# Créer une figure Matplotlib et un canvas Tkinter associé
+figure = Figure(figsize=(5, 4), dpi=100)
+canvas = FigureCanvasTkAgg(figure, master=window)
+canvas.draw()
+canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-# Create a ScrolledFrame widget
-sf = ScrolledFrame(root, width=640, height=480)
-sf.pack(side="top", expand=1, fill="both")
+# Créer un graphique Matplotlib dans la figure
+axes = figure.add_subplot(111)
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+axes.plot(x, y)
+axes.set_xlabel("x")
+axes.set_ylabel("sin(x)")
+axes.set_title("Graphique de sin(x)")
 
-# Bind the arrow keys and scroll wheel
-sf.bind_arrow_keys(root)
-sf.bind_scroll_wheel(root)
-
-# Create a frame within the ScrolledFrame
-inner_frame = sf.display_widget(Frame)
-
-# Add a bunch of widgets to fill some space
-num_rows = 2
-num_cols = 2
-for row in range(num_rows):
-    for column in range(num_cols):
-        w = Label(inner_frame,
-                  width=15,
-                  height=5,
-                  borderwidth=2,
-                  relief="groove",
-                  anchor="center",
-                  justify="center",
-                  text=str(row * num_cols + column))
-
-        w.grid(row=row,
-               column=column,
-               padx=4,
-               pady=4)
-
-# Start Tk's event loop
-root.mainloop()
+# Lancer la boucle principale Tkinter
+window.mainloop()
