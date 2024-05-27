@@ -130,6 +130,30 @@ def GetMediumTemp(bdd:sqlite3.Connection, stadium:str, day:datetime) -> int:
     #print(rep)
     return rep
 
+def GetTempsInMonth(bdd, stade, month, year):
+    bddStade = bdd.cursor()
+    rep = []
+    command = "SELECT TEMPERATURE FROM TEMPERATURE WHERE JOUR LIKE ? AND Stade = ?"
+    
+    if month < 10:
+        temp = bddStade.execute(command, (str(year)+ "-0" + str(month)+ "%", stade)).fetchall()
+    else:
+        temp = bddStade.execute(command, (str(year)+ "-" + str(month)+ "%", stade)).fetchall()
+    for value in temp:
+        rep.append(value[0])
+    return rep
+
+
+def GetTempsInYear(bdd, stade, year):
+    bddStade = bdd.cursor()
+    rep = []
+    command = "SELECT TEMPERATURE FROM TEMPERATURE WHERE JOUR LIKE ? AND Stade = ?;"
+    temp = bddStade.execute(command, (str(year) + "%", stade)).fetchall()
+    for value in temp:
+        rep.append(value[0])
+    return rep
+
+
 if __name__ == "__main__":
     #password = "HelloWorld".encode("utf-8")
     #hashed = bcrypt.hashpw(password, bcrypt.gensalt())

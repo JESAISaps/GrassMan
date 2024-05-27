@@ -12,13 +12,12 @@ def CreateTemp(heure, dayMedium)->int:
     return dayMedium - ((heure - 12)**2)/dayMedium
 
 def DrawStadiumExample(nbX, nbY):
-    blankArray = [[0]*100 for _ in range(50)]
-    imageData = [[[0,(40 + randint(1, 10))*7,0] for _ in ligne] for ligne in blankArray]
+
+    imageData = [[(0,(40 + randint(1, 10))*7,0) for _ in range(100)] for _ in range(50)]
 
     for i in range(1, nbY+1, 50//nbY):
         for j in range(1, nbX+1, 100//nbX):
-            print("passe par la")
-            imageData[int(i)][int(j)] = (254, 0, 0)
+            imageData[i][j] = (200, 0, 0)
     #print(imageData)
     finalImage = np.array(gaussian_filter(imageData, sigma=0.75)).astype(np.uint8)
 

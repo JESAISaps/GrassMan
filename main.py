@@ -10,6 +10,7 @@ import tkcalendar
 from datetime import datetime, timedelta
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from calendar import monthrange, isleap
 
 from stades import Stade
 from scipy.ndimage import gaussian_filter
@@ -60,6 +61,9 @@ class App(Tk):
         frame.pack_propagate(False)
         frame.pack(expand=True)
         frame.tkraise()
+
+        if type(frame) == StadiumFrameTemplate:
+            frame.UpdateGraph()
 
     def AddStadiumFrame(self, name, dimensions=(100, 50)):
         if name in ["HomeFrame", "CreateStadium", "StadiumList"]:
@@ -311,10 +315,13 @@ class SideMenu(tk.Frame):
 
             self.NameLabel = ttk.Label(self, text="Default", background=GREEN)
 
+            self.homeButton = ttk.Button(self, text="Menu", command= lambda : self.root.show_frame("StadiumList"))
+
             self.LogoutButton = ttk.Button(self, text="Se déconnecter", command=self.Logout)
 
-            self.NameLabel.pack(side="left", pady=50)
-            self.LogoutButton.pack(side="left")
+            self.NameLabel.pack(side="top", pady=100)
+            self.homeButton.pack(pady=(0, 20))
+            self.LogoutButton.pack(expand= True, fill = "none")
 
         def RefreshText(self, newID):
             self.NameLabel.configure(text=newID)
@@ -323,6 +330,7 @@ class SideMenu(tk.Frame):
         def Logout(self):
             self.root.DisconnectClient()
             self.parent.ChangeFrame("ConnectionFrame")
+
 
 class HomeFrame(tk.Frame):
 
@@ -415,8 +423,8 @@ class CreateStadiumFrame(tk.Frame):
         self.xDim.trace_add("write", lambda e,a,z: self.RefreshStadium())
         self.yDim = tk.IntVar(value=1)
         self.yDim.trace_add("write", lambda e,a,z: self.RefreshStadium())
-        self.dimensionBoxX = ttk.Combobox(self.XFrame, textvariable=self.xDim)
-        self.dimensionBoxY = ttk.Combobox(self.YFrame, textvariable=self.yDim)    
+        self.dimensionBoxX = ttk.Combobox(self.XFrame, textvariable=self.xDim, state="readonly")
+        self.dimensionBoxY = ttk.Combobox(self.YFrame, textvariable=self.yDim, state="readonly")    
 
         self.dimXLabel = ttk.Label(self.XFrame, text="Capteurs sur la longeur :")
         self.dimYLabel = ttk.Label(self.YFrame, text="Capteurs sur la largeur :")
@@ -510,25 +518,48 @@ class StadiumFrameTemplate(tk.Frame):
         self.root = root
         self.name = nomStade
 
-        #create the stadium we'll get data from
-        self.stade = Stade(nomStade, dimentions)
+        self.stadiumInfoFrame = tk.Frame(self, highlightbackground="black", highlightthickness=1)
+        self.graphFrame = tk.Frame(self, highlightbackground="black", highlightthickness=1)
+
+        self.stadiumNameLabel = ttk.Label(self.stadiumInfoFrame, text=self.name, font="Bold")
+        self.dimText = f"Repartition des capteurs: \n   Longueur: {dimentions[0]}\n   Largeur: {dimentions[1]}"
+        self.repartitionCapteursLabel = ttk.Label(self.stadiumInfoFrame, text = self.dimText)
+
+        self.showTodayBool = tk.BooleanVar(value=True)
+        self.showToday = ttk.Checkbutton(self.graphFrame, text="Aujourd'hui", variable=self.showTodayBool, command=lambda e: self.UpdateGraph())
+        self.showToday.selection_clear()
+        
+        self.graph = Figure(figsize=(5,3), dpi=100)
         self.calendar = tkcalendar.Calendar(self, locale="fr",day= (datetime.today() - timedelta(days=1)).day, maxdate=datetime.today() - timedelta(days=1),
                                             background=GREY, selectbackground = GREEN)
+        
+        self.graphCanvas = FigureCanvasTkAgg(self.graph, master=self.graphFrame)
+        self.graphCanvas.draw()
+
+        self.modeChoice = tk.StringVar()
+        self.modeSelection = ttk.Combobox(self.graphFrame, values=["Jour", "Mois", "Année"], textvariable=self.modeChoice, state="readonly")
+        self.modeSelection.current(0)
+        self.modeChoice.trace_add("write", lambda e,a,z: self.UpdateGraph())
+        #create the stadium we'll get data from
+        self.stade = Stade(nomStade, dimentions)
         self.calendar.bind("<<CalendarSelected>>", lambda e: self.UpdateGraph())
 
-        tk.Label(self, text=self.name).pack()
+        self.stadiumNameLabel.pack()
+        self.repartitionCapteursLabel.pack()
 
-        self.graph = Figure(figsize=(5,3), dpi=100)
-        self.graphCanvas = FigureCanvasTkAgg(self.graph, master=self)
-        self.graphCanvas.draw()
-        self.graphCanvas.get_tk_widget().pack(side="top", anchor="ne")
+        self.graphCanvas.get_tk_widget().pack(anchor="e")
+        self.modeSelection.pack(side="left", padx=(5), pady=2)
+        self.showToday.pack(side="right", padx=(5), pady=2)
 
-        self.calendar.pack(side="right", anchor="se")
+        self.calendar.pack(side="bottom", anchor = "se")
+        
+        self.stadiumInfoFrame.pack(side="left", anchor="n", padx=(10, 0), pady=(10,0))
+        self.graphFrame.pack(side="right", padx=(0, 10))
+
 
         
         #self.refreshGraphButton = tk.Button(self, text="Refresh", command=self.updateGraph, font=("Helvetica", 25))
         #self.refreshGraphButton.pack(side="right", padx=30, pady=30)
-
         self.pack_propagate(False)
 
     def UpdateGraph(self):
@@ -538,17 +569,38 @@ class StadiumFrameTemplate(tk.Frame):
         # cette ligne est trop belle pour etre enlevée
         #imageData = np.array(gaussian_filter([[[0,(element+20)*7,0] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
         
-        self.graph.clf()
+        try:
+            self.graph.clf()
+        except:
+            pass
         self.axes = self.graph.add_subplot(111)
-        hours = np.arange(24)
-        bdd = sqlite3.connect(self.root.BDDPATH)
-        dayMedium = BDDapi.GetMediumTemp(bdd, self.name, self.calendar.selection_get())
-        temps = np.array([Graphs.CreateTemp(hour, dayMedium) for hour in hours])
-        #print(hours, temps)
-        self.axes.plot(hours, temps)
+        if(self.showTodayBool.get()):
+            pass
+        elif(self.modeChoice.get() == "Jour"):
+            nbValeurs = np.arange(24)
+            bdd = sqlite3.connect(self.root.BDDPATH)
+            dayMedium = BDDapi.GetMediumTemp(bdd, self.name, self.calendar.selection_get())
+            temps = np.array([Graphs.CreateTemp(hour, dayMedium) for hour in nbValeurs])
+
+        elif(self.modeChoice.get() == "Mois"):
+            bdd = sqlite3.connect(self.root.BDDPATH)
+            nbValeurs = np.arange(monthrange(*self.calendar.get_displayed_month()[::-1])[1])
+            
+            temps = np.array(BDDapi.GetTempsInMonth(bdd, self.name, *self.calendar.get_displayed_month()))
+
+        elif (self.modeChoice.get() == "Année"):
+            bdd = sqlite3.connect(self.root.BDDPATH)
+            nbValeurs = np.arange(365 + isleap(self.calendar.selection_get().year))
+            temps = np.array(BDDapi.GetTempsInYear(bdd, self.name, self.calendar.get_displayed_month()[1]))
+            print(nbValeurs, temps)
+        else:
+            print("Ho no")
+
+        bdd.close()
+        self.axes.plot(nbValeurs, temps)
         
         # set fixed axes limits
-        self.axes.set_xlim(0, 23)
+        self.axes.set_xlim(0, len(nbValeurs)-1)
         self.axes.set_ylim(-5, 30)
 
         self.graphCanvas.draw()
