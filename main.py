@@ -395,17 +395,18 @@ class CreateStadiumFrame(tk.Frame):
         pageNameLabel.pack(side="top")
 
         self.stadiumNameLabel = ttk.Label(self.nameChoiceFrame, text="Nom du nouveau stade: ", background=GREY)
-        self.stadiumNameLabel.pack(side="top", pady=20)
+        self.stadiumNameLabel.pack(side="top", pady=12)
 
         self.stadiumName = tk.StringVar()
         self.newStadiumNameEntry = ttk.Entry(self.nameChoiceFrame, textvariable=self.stadiumName)
-        self.newStadiumNameEntry.pack(side="bottom")
+        self.newStadiumNameEntry.pack()
         self.newStadiumNameEntry.focus()
 
         self.CapteursChoiceFrame = tk.Frame(self, background=GREY)
+        self.ImageExampleFrame = tk.Frame(self.CapteursChoiceFrame, background= GREY)
 
         self.stadiumImage = Graphs.DrawStadiumExample(1, 1)
-        self.StadiumImageLabel = tk.Label(self.CapteursChoiceFrame, image=self.stadiumImage)
+        self.StadiumImageLabel = tk.Label(self.ImageExampleFrame, image=self.stadiumImage)
 
         self.XFrame = tk.Frame(self.CapteursChoiceFrame, highlightbackground="black", highlightthickness=1)
         self.YFrame = tk.Frame(self.CapteursChoiceFrame, highlightbackground="black", highlightthickness=1)
@@ -429,16 +430,17 @@ class CreateStadiumFrame(tk.Frame):
         self.dimensionBoxX.pack(side="bottom")
         self.dimensionBoxY.pack(side="bottom")
 
-        self.XFrame.pack(side="left")
-        self.YFrame.pack(side="right", padx=50)
+        self.XFrame.pack(side="top")
+        self.YFrame.pack(side="top")
 
         self.StadiumImageLabel.pack(side="bottom", pady=(50, 0))
 
         self.nameChoiceFrame.pack(side="left", padx=(100, 0))
-        self.CapteursChoiceFrame.pack(side="right", anchor="ne", pady=(100, 0))
+        self.CapteursChoiceFrame.pack(side="right", anchor="ne", pady=(100, 0), padx=(0, 20))
+        self.ImageExampleFrame.pack(side="bottom", anchor = "s")
 
-        self.confirmButton = ttk.Button(self, text="Confirmer", command=self.CreateNewStadium)
-        self.confirmButton.pack(side="bottom", anchor="s")
+        self.confirmButton = ttk.Button(self.nameChoiceFrame, text="Confirmer", command=self.CreateNewStadium)
+        self.confirmButton.pack(side="bottom", pady=(10, 0))
 
         self.ErrorLabel = ttk.Label(self, text = "Veuillez verifier vos entrées")
 
@@ -510,7 +512,8 @@ class StadiumFrameTemplate(tk.Frame):
 
         #create the stadium we'll get data from
         self.stade = Stade(nomStade, dimentions)
-        self.calendar = tkcalendar.Calendar(self, locale="fr",day= (datetime.today() - timedelta(days=1)).day, maxdate=datetime.today() - timedelta(days=1))
+        self.calendar = tkcalendar.Calendar(self, locale="fr",day= (datetime.today() - timedelta(days=1)).day, maxdate=datetime.today() - timedelta(days=1),
+                                            background=GREY, selectbackground = GREEN)
         self.calendar.bind("<<CalendarSelected>>", lambda e: self.UpdateGraph())
 
         tk.Label(self, text=self.name).pack()
@@ -560,14 +563,24 @@ class StadiumListFrame(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.root = root
         self.parent = parent
-        self.list = ScrolledFrame(self, width = 400, height = 200, scrollbars = "vertical", use_ttk = True)
-        self.list.pack(side="left")
+
+        self.listFrame = ttk.Frame(self)
+
+        self.yourStadiumsLabel = ttk.Label(self.listFrame, text="Vos stades :", font="TkTextFont 20")
+        self.yourStadiumsLabel.pack(side="top", pady=(0, 5))
+
+        self.list = ScrolledFrame(self.listFrame, width = 400, height = 200, scrollbars = "vertical", use_ttk = True)
+        self.list.pack(side="bottom")
         self.displayWidget = self.list.display_widget(tk.Frame)
+
+        self.listFrame.pack(side="left")
 
         self.createStadiumBUtton = ttk.Button(self, text="Creer un nouveau stade", command=lambda : root.show_frame("CreateStadium"))
         self.createStadiumBUtton.pack(side="right")
 
         self.shownButtons:list[ttk.Button] = []
+
+
 
     def ShowButtons(self)->None:
 

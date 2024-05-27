@@ -7,19 +7,22 @@ from matplotlib import image as matim
 
 def CreateTemp(heure, dayMedium)->int:
     # Technique de l'autruche: les chances que daymedium == 0
-    # son tellement faibles qu'on va ignorer le bug au lieu de le fix
+    # sont tellement faibles qu'on va ignorer le bug au lieu de le fix
     #print(heure, dayMedium)
     return dayMedium - ((heure - 12)**2)/dayMedium
 
 def DrawStadiumExample(nbX, nbY):
     blankArray = [[0]*100 for _ in range(50)]
-    imageData = [[[0,(zero + randint(1, 20))*7,0] for zero in ligne] for ligne in blankArray]
+    imageData = [[[0,(40 + randint(1, 10))*7,0] for _ in ligne] for ligne in blankArray]
 
-    for i in np.arange(1, nbX, 50/nbY):
-        for j in np.arange(1, nbY, 100/nbX):
-            imageData[int(i)][int(j)] = (254, 0, 0) 
-    print(imageData)
+    for i in range(1, nbY+1, 50//nbY):
+        for j in range(1, nbX+1, 100//nbX):
+            print("passe par la")
+            imageData[int(i)][int(j)] = (254, 0, 0)
+    #print(imageData)
     finalImage = np.array(gaussian_filter(imageData, sigma=0.75)).astype(np.uint8)
+
+    #print(finalImage)
 
     matim.imsave("./temp/tempGraph.png", finalImage)        
     image = Image.open("./temp/tempGraph.png")        
