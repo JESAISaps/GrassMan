@@ -429,8 +429,8 @@ class CreateStadiumFrame(tk.Frame):
         self.dimXLabel = ttk.Label(self.XFrame, text="Capteurs sur la longeur :")
         self.dimYLabel = ttk.Label(self.YFrame, text="Capteurs sur la largeur :")
 
-        self.dimensionBoxX["values"] = [i for i in range(1, 21)]
-        self.dimensionBoxY["values"] = [i for i in range(1, 11)]
+        self.dimensionBoxX["values"] = [i for i in range(1, 11)]
+        self.dimensionBoxY["values"] = [i for i in range(1, 6)]
         
         self.dimXLabel.pack(side="top")
         self.dimYLabel.pack(side="top")
@@ -518,21 +518,43 @@ class StadiumFrameTemplate(tk.Frame):
         self.root = root
         self.name = nomStade
 
-        self.stadiumInfoFrame = tk.Frame(self, highlightbackground="black", highlightthickness=1)
+        self.stadiumNameFrame = tk.Frame(self, highlightbackground="black", highlightthickness=1)
         self.graphFrame = tk.Frame(self, highlightbackground="black", highlightthickness=1)
+        self.configureStadiumFrame = tk.Frame(self, highlightbackground="black", highlightthickness=1)
 
-        self.stadiumNameLabel = ttk.Label(self.stadiumInfoFrame, text=self.name, font="Bold")
-        self.dimText = f"Repartition des capteurs: \n   Longueur: {dimentions[0]}\n   Largeur: {dimentions[1]}"
-        self.repartitionCapteursLabel = ttk.Label(self.stadiumInfoFrame, text = self.dimText)
+        def GetBoolStateString(state):
+            if state:
+                return "On"
+            return "Off"
+        self.isHeating = tk.BooleanVar(value=False)
+        self.heatingLabel = ttk.Label(self.configureStadiumFrame, text="Chauffage : " + GetBoolStateString(self.isHeating.get()))
+        self.heatingButton = ttk.Button(self.configureStadiumFrame, text="Allumer / Eteindre", command= lambda : (self.isHeating.set( not self.isHeating.get()),
+                                                                                                        self.heatingLabel.configure(text="Chauffage : " + GetBoolStateString(self.isHeating.get())),
+                                                                                                        self.update_idletasks()))
+        
+        self.arrosage = tk.BooleanVar(value=False)
+        self.arrosageLabel = ttk.Label(self.configureStadiumFrame, text="Arrosage : " + GetBoolStateString(self.arrosage.get()))
+        self.arrosageButton = ttk.Button(self.configureStadiumFrame, text="Allumer / Eteindre", command= lambda : (self.arrosage.set( not self.arrosage.get()),
+                                                                                                        self.arrosageLabel.configure(text="Arrosage : " + GetBoolStateString(self.arrosage.get())),
+                                                                                                        self.update_idletasks()))        
+        
+        self.dimText = f"   Capteurs: \nLongueur: {dimentions[0]}\nLargeur: {dimentions[1]}"
+        self.repartitionCapteursLabel = ttk.Label(self.configureStadiumFrame, text = self.dimText)
+        
+
+
+        self.repartitionCapteursLabel.pack(side="top", pady=(3, 0))
+
+        self.stadiumNameLabel = ttk.Label(self.stadiumNameFrame, text=self.name, font="Bold 30")
 
         self.showTodayBool = tk.BooleanVar(value=True)
-        self.showToday = ttk.Checkbutton(self.graphFrame, text="Aujourd'hui", variable=self.showTodayBool, command=lambda e: self.UpdateGraph())
-        self.showToday.selection_clear()
+        self.showToday = ttk.Checkbutton(self.graphFrame, text="Aujourd'hui", variable=self.showTodayBool, command= self.UpdateGraph)
+        self.showTodayBool.trace_add("write", lambda e, a, z: self.ToggleTodayGraph(self.showTodayBool.get()))
         
-        self.graph = Figure(figsize=(5,3), dpi=100)
+        self.graph = Figure(figsize=(6.8,4.2), dpi=100)
         self.calendar = tkcalendar.Calendar(self, locale="fr",day= (datetime.today() - timedelta(days=1)).day, maxdate=datetime.today() - timedelta(days=1),
-                                            background=GREY, selectbackground = GREEN)
-        
+                                            background=GREY, selectbackground = GREEN, font="Arial 12", foreground="black")
+
         self.graphCanvas = FigureCanvasTkAgg(self.graph, master=self.graphFrame)
         self.graphCanvas.draw()
 
@@ -544,6 +566,11 @@ class StadiumFrameTemplate(tk.Frame):
         self.stade = Stade(nomStade, dimentions)
         self.calendar.bind("<<CalendarSelected>>", lambda e: self.UpdateGraph())
 
+        self.heatingLabel.pack(side="top")
+        self.heatingButton.pack(side="top")
+        self.arrosageLabel.pack(side="top", pady=(10, 0))
+        self.arrosageButton.pack(side="top")
+
         self.stadiumNameLabel.pack()
         self.repartitionCapteursLabel.pack()
 
@@ -551,16 +578,34 @@ class StadiumFrameTemplate(tk.Frame):
         self.modeSelection.pack(side="left", padx=(5), pady=2)
         self.showToday.pack(side="right", padx=(5), pady=2)
 
-        self.calendar.pack(side="bottom", anchor = "se")
-        
-        self.stadiumInfoFrame.pack(side="left", anchor="n", padx=(10, 0), pady=(10,0))
-        self.graphFrame.pack(side="right", padx=(0, 10))
+        #self.calendar.pack(side="bottom", anchor = "e", padx=(0,10), pady=(0,30))
+        #self.graphFrame.pack(side="right",anchor="ne", padx=(10, 10), pady=(10, 0))
+        #self.stadiumNameFrame.pack(side="top",anchor="w", padx=(10, 0), pady=(10,0))
+        #self.configureStadiumFrame.pack(side="left", anchor="w", padx=(10, 0))
 
+        self.graphFrame.grid(column=1, row=0, columnspan=5, rowspan=3, padx=(0,10), pady=(10, 0))
+        self.calendar.grid(column=5, row=4, padx=(0,10), pady=(10, 10), sticky = "E")
+        self.stadiumNameFrame.grid(column=2, row=4, pady=30)
+        self.configureStadiumFrame.grid(column=0, row=1, padx=(10,10), pady=(10, 0))
 
-        
-        #self.refreshGraphButton = tk.Button(self, text="Refresh", command=self.updateGraph, font=("Helvetica", 25))
-        #self.refreshGraphButton.pack(side="right", padx=30, pady=30)
         self.pack_propagate(False)
+        self.grid_propagate(False)
+
+
+        self.ToggleTodayGraph(self.showTodayBool.get())
+
+    def ToggleTodayGraph(self, state):
+
+        if state: # If we only want to show today's temps
+            self.calendar.grid_remove()
+            #self.configureStadiumFrame.grid()
+            self.modeSelection.pack_forget()
+        else:
+            #self.configureStadiumFrame.grid_remove()
+            self.calendar.grid()
+            self.modeSelection.pack(side="left", padx=(5), pady=2)
+
+        self.update_idletasks()
 
     def UpdateGraph(self):
         """
@@ -568,44 +613,51 @@ class StadiumFrameTemplate(tk.Frame):
         """
         # cette ligne est trop belle pour etre enlevée
         #imageData = np.array(gaussian_filter([[[0,(element+20)*7,0] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
-        
+
         try:
             self.graph.clf()
         except:
-            pass
+            return
         self.axes = self.graph.add_subplot(111)
+
         if(self.showTodayBool.get()):
-            pass
-        elif(self.modeChoice.get() == "Jour"):
-            nbValeurs = np.arange(24)
+            #self.ToggleTodayGraph(self.showTodayBool.get())
+            nbValeurs = np.arange(datetime.now().hour + 1)
             bdd = sqlite3.connect(self.root.BDDPATH)
-            dayMedium = BDDapi.GetMediumTemp(bdd, self.name, self.calendar.selection_get())
-            temps = np.array([Graphs.CreateTemp(hour, dayMedium) for hour in nbValeurs])
-
-        elif(self.modeChoice.get() == "Mois"):
-            bdd = sqlite3.connect(self.root.BDDPATH)
-            nbValeurs = np.arange(monthrange(*self.calendar.get_displayed_month()[::-1])[1])
-            
-            temps = np.array(BDDapi.GetTempsInMonth(bdd, self.name, *self.calendar.get_displayed_month()))
-
-        elif (self.modeChoice.get() == "Année"):
-            bdd = sqlite3.connect(self.root.BDDPATH)
-            nbValeurs = np.arange(365 + isleap(self.calendar.selection_get().year))
-            temps = np.array(BDDapi.GetTempsInYear(bdd, self.name, self.calendar.get_displayed_month()[1]))
-            print(nbValeurs, temps)
+            dayMedium = BDDapi.GetMediumTemp(bdd, self.name, datetime.now().date())
+            temps = np.array([Graphs.CreateDayTemp(hour, dayMedium) for hour in nbValeurs])
+            bdd.close()
         else:
-            print("Ho no")
+            match self.modeSelection.get():
+                case "Jour":
+                    nbValeurs = np.arange(24)
+                    bdd = sqlite3.connect(self.root.BDDPATH)
+                    dayMedium = BDDapi.GetMediumTemp(bdd, self.name, self.calendar.selection_get())
+                    temps = np.array([Graphs.CreateDayTemp(hour, dayMedium) for hour in nbValeurs])
+                    bdd.close()
 
-        bdd.close()
+                case "Mois":
+                    bdd = sqlite3.connect(self.root.BDDPATH)
+                    nbValeurs = np.arange(monthrange(*self.calendar.get_displayed_month()[::-1])[1])            
+                    temps = np.array(BDDapi.GetTempsInMonth(bdd, self.name, *self.calendar.get_displayed_month()))
+                    bdd.close()
+
+                case "Année":
+                    bdd = sqlite3.connect(self.root.BDDPATH)
+                    nbValeurs = np.arange(365 + isleap(self.calendar.selection_get().year))
+                    temps = np.array(BDDapi.GetTempsInYear(bdd, self.name, self.calendar.get_displayed_month()[1]))
+                    bdd.close()
+                    print(nbValeurs, temps)
+                case _:
+                    print("Ho no")
+
         self.axes.plot(nbValeurs, temps)
-        
         # set fixed axes limits
-        self.axes.set_xlim(0, len(nbValeurs)-1)
+        self.axes.set_xlim(0, max(len(nbValeurs)-1, 23))
         self.axes.set_ylim(-5, 30)
-
+        self.axes.set_xlabel("Jour")
+        self.axes.set_ylabel("Temps (C°)")
         self.graphCanvas.draw()
-
-        #print("Tried to update graph")
 
 
 class StadiumListFrame(tk.Frame):

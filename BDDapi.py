@@ -2,6 +2,7 @@ import bcrypt
 import stades
 import sqlite3
 from datetime import datetime, timedelta
+import Graphs
 from random import uniform
 
 def connection(bdd, id,mdp):
@@ -108,26 +109,15 @@ def AddOldTempsToDB(bdd:sqlite3.Connection, temps, name:str):
 def CreateOldTemps(passedDays):
     rep = []
     for day in passedDays:
-        rep.append((day, CreateTemp((day.day, day.month))))
+        rep.append((day, Graphs.CreateTemp((day.day, day.month))))
     return rep
-    
-def CreateTemp(Date):
-    Moyenne=[3.7,4.4,8.1,11.7,15.6,20.2,22.6,22.1,18,13.6,8,4.5]
-    Mois=Date[1]-1 # On fait -1 car les dates commencent a 1
-    Jour=Date[0]-1
-    TempDepart=Moyenne[Mois]+uniform(-0.4,0.4)
-    if Mois!=11:
-        TempDepart=TempDepart+(Moyenne[Mois+1]+uniform(-0.2,0.2)-TempDepart)*Jour/31
-    return TempDepart
+
 
 def GetMediumTemp(bdd:sqlite3.Connection, stadium:str, day:datetime) -> int:
     bddStade = bdd.cursor()
 
     command = "SELECT Temperature from Temperature WHERE Stade = ? AND Jour = ?;"
-    #print(str(day) + " 00:00:00")
-    #print(str(stadium))
     rep = bddStade.execute(command, (stadium, str(day) + " 00:00:00")).fetchall()[0][0]
-    #print(rep)
     return rep
 
 def GetTempsInMonth(bdd, stade, month, year):

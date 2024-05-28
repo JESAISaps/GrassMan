@@ -2,24 +2,34 @@ from matplotlib import pyplot as plt
 from PIL import Image, ImageTk
 import numpy as np
 from scipy.ndimage import gaussian_filter
-from random import randint
+from random import randint, uniform
 from matplotlib import image as matim
 
-def CreateTemp(heure, dayMedium)->int:
+def CreateDayTemp(heure, dayMedium)->int:
     # Technique de l'autruche: les chances que daymedium == 0
     # sont tellement faibles qu'on va ignorer le bug au lieu de le fix
     #print(heure, dayMedium)
-    return dayMedium - ((heure - 12)**2)/dayMedium
+    rep = dayMedium-2 + np.sin(heure*np.pi/12 +dayMedium/6 +1)*6
+    return rep
+    
+def CreateTemp(Date):
+    Moyenne=[3.7,4.4,8.1,11.7,15.6,20.2,22.6,22.1,18,13.6,8,4.5]
+    Mois=Date[1]-1 # On fait -1 car les dates commencent a 1
+    Jour=Date[0]-1
+    TempDepart=Moyenne[Mois]+uniform(-0.4,0.4)
+    if Mois!=11:
+        TempDepart=TempDepart+(Moyenne[Mois+1]+uniform(-0.2,0.2)-TempDepart)*Jour/31
+    return TempDepart
 
 def DrawStadiumExample(nbX, nbY):
 
-    imageData = [[(0,(40 + randint(1, 10))*7,0) for _ in range(100)] for _ in range(50)]
+    imageData = gaussian_filter([[(0,(40 + randint(1, 10))*7,0) for _ in range(100)] for _ in range(50)], sigma=0.75)
 
-    for i in range(1, nbY+1, 50//nbY):
-        for j in range(1, nbX+1, 100//nbX):
-            imageData[i][j] = (200, 0, 0)
-    #print(imageData)
-    finalImage = np.array(gaussian_filter(imageData, sigma=0.75)).astype(np.uint8)
+    for i in range(int(25/nbY), 50, int(50/nbY+1)-1):
+        for j in range(int(50//nbX), 100, int(100//nbX)):
+            imageData[i][j] = (255, 0, 0)
+
+    finalImage = np.array(imageData).astype(np.uint8)
 
     #print(finalImage)
 
@@ -29,22 +39,6 @@ def DrawStadiumExample(nbX, nbY):
     photo = ImageTk.PhotoImage(image)        
     return photo
     
-    
+if __name__ == "__main__":
 
-#def DrawGraph(temps:list[tuple]):
-#    """
-#    Draws a graph from points in tuple:
-#    temps must be [(hour, temp)] and len(temps) <= 24
-#    """
-#    #plt.clf()
-#    plt.plot(temps)
-#    plt.savefig("./temp/tempGraph.png")
-#    image = Image.open("./temp/tempGraph.png").resize((500, 250))
-#    photo = ImageTk.PhotoImage(image)
-#    return photo
-#
-#def GetGraph(medium):
-#    hourlyTemp = []
-#    for heure in range(24):
-#        hourlyTemp.append(CreateTemp(heure, medium))
-#    return DrawGraph(hourlyTemp)
+    print(DrawStadiumExample(100, 50))
