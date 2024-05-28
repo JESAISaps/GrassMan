@@ -4,6 +4,7 @@ import numpy as np
 from scipy.ndimage import gaussian_filter
 from random import randint, uniform
 from matplotlib import image as matim
+import math
 
 def CreateDayTemp(heure, dayMedium)->int:
     # Technique de l'autruche: les chances que daymedium == 0
@@ -11,9 +12,15 @@ def CreateDayTemp(heure, dayMedium)->int:
     #print(heure, dayMedium)
     rep = dayMedium-2 + np.sin(heure*np.pi/12 +dayMedium/6 +1)*6
     return rep
-    
+def RechauffementClimatique(Moyenne,Date):   
+    if Date[2]>2000:
+        for k in range(len(Moyenne)):
+            Moyenne[k]=math.log(Moyenne[k]/10*(Date[2]-2000),2.7)
+    return Moyenne
+                    
 def CreateTemp(Date):
     Moyenne=[3.7,4.4,8.1,11.7,15.6,20.2,22.6,22.1,18,13.6,8,4.5]
+    Moyenne=RechauffementClimatique(Moyenne,Date)
     Mois=Date[1]-1 # On fait -1 car les dates commencent a 1
     Jour=Date[0]-1
     TempDepart=Moyenne[Mois]+uniform(-0.4,0.4)
