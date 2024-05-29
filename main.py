@@ -13,7 +13,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from calendar import monthrange, isleap
 
 from stades import Stade
-from scipy.ndimage import gaussian_filter
 
 # Global var, for colors:
 GREEN = "#32cd32"
@@ -313,24 +312,65 @@ class SideMenu(tk.Frame):
             self.parent:SideMenu = parent
             self.root:App = root
 
-            self.NameLabel = ttk.Label(self, text="Default", background=GREEN)
+            self.userInfoFrame = tk.Frame(self, highlightbackground="black", highlightthickness=1)
+
+            self.userName = ttk.Label(self.userInfoFrame, text="Default")
+
+            self.changePasswordLabel1 = ttk.Label(self.userInfoFrame, text="Changer votre mot de passe :")
+            self.password1 = tk.StringVar()
+            self.changePasswordEntry1 = ttk.Entry(self.userInfoFrame, textvariable=self.password1)
+
+            self.changePasswordLabel2 = ttk.Label(self.userInfoFrame, text="Confirmer le mot de passe")
+            self.password2 = tk.StringVar()            
+            self.changePasswordEntry2 = ttk.Entry(self.userInfoFrame, textvariable=self.password2)
+
+            self.confirmPasswordChange = ttk.Button(self.userInfoFrame, text="Confirmer", command=self.ConfirmPasswordChange)
 
             self.homeButton = ttk.Button(self, text="Menu", command= lambda : self.root.show_frame("StadiumList"))
-
             self.LogoutButton = ttk.Button(self, text="Se déconnecter", command=self.Logout)
 
-            self.NameLabel.pack(side="top", pady=100)
+            self.passwordMismachLabel = ttk.Label(self, text="Mots de passe differents", background="red")
+            self.passwordChangeSucces = ttk.Label(self, text="Mot de passe changé avec succès !", background="green")
+
+            self.userName.pack(side="top")
+            self.changePasswordLabel1.pack(side="top")
+            self.changePasswordEntry1.pack(side="top", pady=(0, 3))
+            self.changePasswordLabel2.pack(side="top")
+            self.changePasswordEntry2.pack(side="top", pady=(0, 4))
+            self.confirmPasswordChange.pack(side="top")
+
+            self.userInfoFrame.pack(side="top", pady=100)
             self.homeButton.pack(pady=(0, 20))
             self.LogoutButton.pack(expand= True, fill = "none")
 
         def RefreshText(self, newID):
-            self.NameLabel.configure(text=newID)
+            self.userName.configure(text=newID)
             self.update_idletasks()
 
         def Logout(self):
+
+
             self.root.DisconnectClient()
             self.parent.ChangeFrame("ConnectionFrame")
 
+        def MismatchPasswordError(self):
+            self.passwordMismachLabel.pack(side="bottom", pady=(0, 4))
+            self.after(2000, self.passwordMismachLabel.pack_forget)
+
+        def PasswordChangeSuccces(self):            
+            self.passwordChangeSucces.pack(side="bottom", pady=(0, 4))
+            self.after(2000, self.passwordChangeSucces.pack_forget)
+
+        def ConfirmPasswordChange(self):
+            if self.password1.get() != self.password2.get():
+                self.MismatchPasswordError()
+            else:
+                bdd = sqlite3.connect(self.root.BDDPATH)
+                BDDapi.ChangeUserPassword(bdd, self.root.client.GetClientId(), self.password1.get())
+                bdd.commit()
+                bdd.close()
+
+                self.PasswordChangeSuccces()
 
 class HomeFrame(tk.Frame):
 
@@ -357,31 +397,31 @@ class HomeFrame(tk.Frame):
         self.confirmButton = ttk.Button(self, text="Confirmer", command= lambda : self.LoginUser(self.userId.get(), self.password.get()))
         self.confirmButton.pack(side="bottom")
 
-        self.sideMenu = SideMenu(parent, self.root)        
+        self.sideMenu = SideMenu(parent, self.root)
+
+        self.logMessage = ttk.Label(self)
 
     def LoginUser(self, id, psw)->None:
         bdd = sqlite3.connect(self.root.BDDPATH)
         access = BDDapi.connection(bdd, id, psw)
         bdd.close()
-        #pour test des menus
-        if id == "azerty":
-            self.root.show_frame("StadiumList")
-            return
 
         if access:
-            print("Acces autorise")
+            self.showLogMessage("Connecté avec succès, veuillez patienter ...", "green")
             self.root.createUserSession(id)
             self.root.CreateStadiumFrames()
             self.root.show_frame("StadiumList")
             self.root.frames["StadiumList"].ShowButtons()
             self.sideMenu.ChangeFrame("AccountMenu")
             self.sideMenu.frames["AccountMenu"].RefreshText(self.root.client.GetClientId())
-            return
         else:
-            print("Hehe non")
-            return
+            self.showLogMessage("Erreur, veuillez verifiez vos identifiants et mot de passe.", "red")
 
-
+    def showLogMessage(self, text, color):
+        self.logMessage.configure(text=text, background=color)
+        self.update_idletasks()
+        self.logMessage.pack(side="top", pady=(3, 0))
+        self.after(2000, self.logMessage.pack_forget)
 class CreateStadiumFrame(tk.Frame):
 
     def __init__(self, parent:tk.Frame, root:App):
@@ -691,7 +731,6 @@ class StadiumListFrame(tk.Frame):
         self.createStadiumBUtton.pack(side="right")
 
         self.shownButtons:list[ttk.Button] = []
-
 
 
     def ShowButtons(self)->None:

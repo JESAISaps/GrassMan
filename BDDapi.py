@@ -143,6 +143,11 @@ def GetTempsInYear(bdd, stade, year):
         rep.append(value[0])
     return rep
 
+def ChangeUserPassword(bdd:sqlite3.Connection, userId, newPass):
+    bddStade = bdd.cursor()
+    command = "UPDATE client SET motdepasse = ? WHERE identifiant = ?;"
+    bddStade.execute(command, (str(bcrypt.hashpw(newPass.encode("utf-8"), bcrypt.gensalt()))[2:-1], userId))
+
 
 if __name__ == "__main__":
     #password = "HelloWorld".encode("utf-8")
