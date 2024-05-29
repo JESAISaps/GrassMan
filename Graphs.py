@@ -11,15 +11,19 @@ def CreateDayTemp(heure, dayMedium)->int:
     # sont tellement faibles qu'on va ignorer le bug au lieu de le fix
     #print(heure, dayMedium)
     rep = dayMedium-2 + np.sin(heure*np.pi/12 +dayMedium/6 +1)*6
+    
     return rep
+
 def RechauffementClimatique(Moyenne,Date):   
     if Date[2]>2000:
         for k in range(len(Moyenne)):
-            Moyenne[k]=math.log(Moyenne[k]/10*(Date[2]-2000),2.7)
+            Moyenne[k]+=math.log(Moyenne[k]/3*(Date[2]-2000),2.7)
+    print("pn est la")
     return Moyenne
                     
 def CreateTemp(Date):
     Moyenne=[3.7,4.4,8.1,11.7,15.6,20.2,22.6,22.1,18,13.6,8,4.5]
+    print("zaefdgn,;")
     Moyenne=RechauffementClimatique(Moyenne,Date)
     Mois=Date[1]-1 # On fait -1 car les dates commencent a 1
     Jour=Date[0]-1

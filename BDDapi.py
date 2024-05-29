@@ -69,14 +69,14 @@ def associerdatetemperature(bddstade):
 def recupidcapteur(x,y,idstade,bddstade):
     bdd=bddstade.cursor()
     idcapteur=bdd.execute('Select IdCapteurs from Capteurs where PositionX= '+str(x)+' and PositionY= '+str(y)+' and IdStade= '+str(idstade)).fetchall()
-    print(idcapteur)
+    #print(idcapteur)
     return idcapteur[0][0]
       
 def importtemperature(listetemp,bddstade,nomstade,idstade):
     jour=associerdatetemperature(bddstade)
     bdd=bddstade.cursor()
     for ligne in range (len(listetemp)):
-        print(len(listetemp[ligne]))
+        #print(len(listetemp[ligne]))
         for colonne in range(len(listetemp[ligne])):
                 idcapteur=recupidcapteur(ligne,colonne,idstade,bddstade)
                 bdd.execute('INSERT INTO Temperature values ('+str(jour)+','+str(listetemp[ligne][colonne])+','+str(idcapteur)+');')
@@ -109,7 +109,7 @@ def AddOldTempsToDB(bdd:sqlite3.Connection, temps, name:str):
 def CreateOldTemps(passedDays):
     rep = []
     for day in passedDays:
-        rep.append((day, Graphs.CreateTemp((day.day, day.month))))
+        rep.append((day, Graphs.CreateTemp((day.day, day.month, day.year))))
     return rep
 
 

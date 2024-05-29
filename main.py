@@ -541,13 +541,14 @@ class StadiumFrameTemplate(tk.Frame):
         self.dimText = f"   Capteurs: \nLongueur: {dimentions[0]}\nLargeur: {dimentions[1]}"
         self.repartitionCapteursLabel = ttk.Label(self.configureStadiumFrame, text = self.dimText)
         
-
+        self.isHeating.trace_add("write", lambda e,a,z: self.UpdateGraph())
+        self.arrosage.trace_add("write",lambda e,a,z: self.UpdateGraph())
 
         self.repartitionCapteursLabel.pack(side="top", pady=(3, 0))
 
         self.stadiumNameLabel = ttk.Label(self.stadiumNameFrame, text=self.name, font="Bold 30")
 
-        self.showTodayBool = tk.BooleanVar(value=True)
+        self.showTodayBool = tk.BooleanVar(value=False)
         self.showToday = ttk.Checkbutton(self.graphFrame, text="Aujourd'hui", variable=self.showTodayBool, command= self.UpdateGraph)
         self.showTodayBool.trace_add("write", lambda e, a, z: self.ToggleTodayGraph(self.showTodayBool.get()))
         
@@ -577,11 +578,6 @@ class StadiumFrameTemplate(tk.Frame):
         self.graphCanvas.get_tk_widget().pack(anchor="e")
         self.modeSelection.pack(side="left", padx=(5), pady=2)
         self.showToday.pack(side="right", padx=(5), pady=2)
-
-        #self.calendar.pack(side="bottom", anchor = "e", padx=(0,10), pady=(0,30))
-        #self.graphFrame.pack(side="right",anchor="ne", padx=(10, 10), pady=(10, 0))
-        #self.stadiumNameFrame.pack(side="top",anchor="w", padx=(10, 0), pady=(10,0))
-        #self.configureStadiumFrame.pack(side="left", anchor="w", padx=(10, 0))
 
         self.graphFrame.grid(column=1, row=0, columnspan=5, rowspan=3, padx=(0,10), pady=(10, 0))
         self.calendar.grid(column=5, row=4, padx=(0,10), pady=(10, 10), sticky = "E")
@@ -619,13 +615,18 @@ class StadiumFrameTemplate(tk.Frame):
         except:
             return
         self.axes = self.graph.add_subplot(111)
-
+        isPredicting = (False, 24)
         if(self.showTodayBool.get()):
-            #self.ToggleTodayGraph(self.showTodayBool.get())
             nbValeurs = np.arange(datetime.now().hour + 1)
             bdd = sqlite3.connect(self.root.BDDPATH)
             dayMedium = BDDapi.GetMediumTemp(bdd, self.name, datetime.now().date())
             temps = np.array([Graphs.CreateDayTemp(hour, dayMedium) for hour in nbValeurs])
+
+            if self.isHeating.get() or self.arrosage.get() or True: # Flemme de tout enlever car au final on fait ca tout le temps 
+                isPredicting = (True, nbValeurs.size-1)
+                for hour in range(nbValeurs.size, 24):
+                    nbValeurs = np.append(nbValeurs, hour)
+                    temps = np.append(temps, Graphs.CreateDayTemp(hour, dayMedium+ 7*self.isHeating.get() - 5*self.arrosage.get()))
             bdd.close()
         else:
             match self.modeSelection.get():
@@ -647,16 +648,23 @@ class StadiumFrameTemplate(tk.Frame):
                     nbValeurs = np.arange(365 + isleap(self.calendar.selection_get().year))
                     temps = np.array(BDDapi.GetTempsInYear(bdd, self.name, self.calendar.get_displayed_month()[1]))
                     bdd.close()
-                    print(nbValeurs, temps)
                 case _:
                     print("Ho no")
 
-        self.axes.plot(nbValeurs, temps)
+        if isPredicting[0]:
+            print(len(nbValeurs), len(temps))
+            print(isPredicting)
+            self.axes.plot(nbValeurs[:isPredicting[1]], temps[:isPredicting[1]], label="Mesures")
+            self.axes.plot(nbValeurs[isPredicting[1]-1:], temps[isPredicting[1]-1:], "g--", label="Prédictions")
+        else:
+            self.axes.plot(nbValeurs, temps)
+
         # set fixed axes limits
         self.axes.set_xlim(0, max(len(nbValeurs)-1, 23))
-        self.axes.set_ylim(-5, 30)
+        self.axes.set_ylim(3, 30)
         self.axes.set_xlabel("Jour")
         self.axes.set_ylabel("Temps (C°)")
+        self.axes.legend(loc="lower right")
         self.graphCanvas.draw()
 
 
