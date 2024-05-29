@@ -2,35 +2,61 @@ from matplotlib import pyplot as plt
 from PIL import Image, ImageTk
 import numpy as np
 from scipy.ndimage import gaussian_filter
-from random import randint, uniform
+from random import randint, uniform, choice
 from matplotlib import image as matim
 import math
 
+def aleatoire(a):
+    return int(str(abs((np.exp(a**1.2))%997)*5.3)[0])
+
 def CreateDayTemp(heure, dayMedium)->int:
-    # Technique de l'autruche: les chances que daymedium == 0
-    # sont tellement faibles qu'on va ignorer le bug au lieu de le fix
-    #print(heure, dayMedium)
+    """
+    Va utiliser la vela
+    """
     rep = dayMedium-2 + np.sin(heure*np.pi/12 +dayMedium/6 +1)*6
+    
+    return rep
+
+def CreateDayPrecip(heure, jour, dayMedium)->int:
+    """
+    Va utiliser la vela
+    """
+    x=heure
+    rep = aleatoire(jour+heure*0.1)*(+dayMedium-2 + np.sin(x*np.pi/12 +dayMedium/6 +1+(heure*jour*x*np.pi+heure/(jour+1)))*6)
     
     return rep
 
 def RechauffementClimatique(Moyenne,Date):   
     if Date[2]>2000:
         for k in range(len(Moyenne)):
-            Moyenne[k]+=math.log(Moyenne[k]/3*(Date[2]-2000),2.7)
-    print("pn est la")
+            Moyenne[k]=Moyenne[k]+math.log(Moyenne[k]/10*(Date[2]-2000),10)
     return Moyenne
                     
 def CreateTemp(Date):
     Moyenne=[3.7,4.4,8.1,11.7,15.6,20.2,22.6,22.1,18,13.6,8,4.5]
-    print("zaefdgn,;")
     Moyenne=RechauffementClimatique(Moyenne,Date)
     Mois=Date[1]-1 # On fait -1 car les dates commencent a 1
     Jour=Date[0]-1
-    TempDepart=Moyenne[Mois]+uniform(-0.4,0.4)
+    TempDepart=Moyenne[Mois]+uniform(-1,1) + choice([-1,1])*abs(1/(Mois-(randint(0,11)+uniform(0.1,0.9))))
     if Mois!=11:
-        TempDepart=TempDepart+(Moyenne[Mois+1]+uniform(-0.2,0.2)-TempDepart)*Jour/31
+        TempDepart=(TempDepart+(Moyenne[Mois+1]+uniform(-0.5,0.5)-TempDepart)*Jour/31)
+    else:
+        TempDepart=(TempDepart+(Moyenne[0]+uniform(-0.5,0.5)-TempDepart)*Jour/31)
+        
     return TempDepart
+
+def CreatePrecip(Date):
+
+    Moyenne=[20,25,60,70,40,15,12,10,20,80,75,34]
+    Mois=Date[1]-1 # On fait -1 car les dates commencent a 1
+    Jour=Date[0]-1
+    PrecipDepart=Moyenne[Mois]+uniform(-1,1) + choice(-1,1)*abs(1/(Mois-(randint(0,11)+uniform(0.1,0.9))))
+    if Mois!=11:
+        PrecipDepart=(PrecipDepart+(Moyenne[Mois+1]+uniform(-4,4)-PrecipDepart)*Jour/31)
+    else:
+        PrecipDepart=(PrecipDepart+(Moyenne[0]+uniform(-4,4)-PrecipDepart)*Jour/31)
+        
+    return PrecipDepart
 
 def DrawStadiumExample(nbX, nbY):
 
@@ -51,5 +77,4 @@ def DrawStadiumExample(nbX, nbY):
     return photo
     
 if __name__ == "__main__":
-
-    print(DrawStadiumExample(100, 50))
+    print(CreateDayPrecip(21,26,30))

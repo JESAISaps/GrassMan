@@ -46,7 +46,6 @@ class App(Tk):
 
         self.activeFrame = "HomeFrame"
         self.frames[self.activeFrame].tkraise()
-
         
     # to display the frame passed as parameter
     def show_frame(self, cont:str):
@@ -422,6 +421,8 @@ class HomeFrame(tk.Frame):
         self.update_idletasks()
         self.logMessage.pack(side="top", pady=(3, 0))
         self.after(2000, self.logMessage.pack_forget)
+
+
 class CreateStadiumFrame(tk.Frame):
 
     def __init__(self, parent:tk.Frame, root:App):
@@ -645,11 +646,13 @@ class StadiumFrameTemplate(tk.Frame):
 
     def UpdateGraph(self):
         """
-        returns image to show
+        Refreshes graph
         """
         # cette ligne est trop belle pour etre enlevée
         #imageData = np.array(gaussian_filter([[[0,(element+20)*7,0] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
-
+        self.bar = ttk.Progressbar(self, orient="horizontal", length=200, mode="indeterminate")
+        self.bar.pack()
+        self.bar.start(10)
         try:
             self.graph.clf()
         except:
@@ -692,10 +695,17 @@ class StadiumFrameTemplate(tk.Frame):
                     print("Ho no")
 
         if isPredicting[0]:
-            print(len(nbValeurs), len(temps))
-            print(isPredicting)
             self.axes.plot(nbValeurs[:isPredicting[1]], temps[:isPredicting[1]], label="Mesures")
             self.axes.plot(nbValeurs[isPredicting[1]-1:], temps[isPredicting[1]-1:], "g--", label="Prédictions")
+
+            # On crée d'autres temperatures pour faire croire que tous les capteurs marchent
+            # Plus il y a de capteurs plus les tempratures sont proches
+            capteurs = self.stade.GetSize()
+            #for _ in range(capteurs[0]):
+            #    for w in range(capteurs[1]-1):
+            #        self.axes.plot(nbValeurs, self.createNewTempFromDefault(temps))
+
+            self.axes.legend(loc="lower right")
         else:
             self.axes.plot(nbValeurs, temps)
 
@@ -704,8 +714,22 @@ class StadiumFrameTemplate(tk.Frame):
         self.axes.set_ylim(3, 30)
         self.axes.set_xlabel("Jour")
         self.axes.set_ylabel("Temps (C°)")
-        self.axes.legend(loc="lower right")
         self.graphCanvas.draw()
+
+        self.bar.stop()
+        self.bar.destroy()
+
+    def createNewTempFromDefault(self, oldtemps):
+        rep = []
+        if oldtemps[0]%2 == 1:
+            sign = 1
+        else:
+            sign = -1
+
+        toAdd = int(str((oldtemps[0]**2)*sign)[:3])/200
+        for temp in oldtemps:
+            rep.append(temp + toAdd)
+        return np.array(rep)
 
 
 class StadiumListFrame(tk.Frame):
