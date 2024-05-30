@@ -317,11 +317,11 @@ class SideMenu(tk.Frame):
 
             self.changePasswordLabel1 = ttk.Label(self.userInfoFrame, text="Changer votre mot de passe :")
             self.password1 = tk.StringVar()
-            self.changePasswordEntry1 = ttk.Entry(self.userInfoFrame, textvariable=self.password1)
+            self.changePasswordEntry1 = ttk.Entry(self.userInfoFrame, textvariable=self.password1, show="•")
 
             self.changePasswordLabel2 = ttk.Label(self.userInfoFrame, text="Confirmer le mot de passe")
             self.password2 = tk.StringVar()            
-            self.changePasswordEntry2 = ttk.Entry(self.userInfoFrame, textvariable=self.password2)
+            self.changePasswordEntry2 = ttk.Entry(self.userInfoFrame, textvariable=self.password2, show="•")
 
             self.confirmPasswordChange = ttk.Button(self.userInfoFrame, text="Confirmer", command=self.ConfirmPasswordChange)
 
@@ -608,6 +608,18 @@ class StadiumFrameTemplate(tk.Frame):
         self.stade = Stade(nomStade, dimentions)
         self.calendar.bind("<<CalendarSelected>>", lambda e: self.UpdateGraph())
 
+        #region InfoCapteurs
+
+        self.capteurInfoFrame = tk.Frame(self, highlightcolor="black", highlightthickness=1)
+        self.capteurs:list[tk.Button] = []
+        nbCapteurs = self.stade.GetSize()
+        for i in range(nbCapteurs[0]):
+            for j in range(nbCapteurs[1]):
+                self.capteurs.append(ttk.Label(self.capteurInfoFrame, text= f"Capteur {str(i+j)} : {0}°C"))
+
+
+        #endregion
+
         self.heatingLabel.pack(side="top")
         self.heatingButton.pack(side="top")
         self.arrosageLabel.pack(side="top", pady=(10, 0))
@@ -620,6 +632,7 @@ class StadiumFrameTemplate(tk.Frame):
         self.modeSelection.pack(side="left", padx=(5), pady=2)
         self.showToday.pack(side="right", padx=(5), pady=2)
 
+        self.capteurInfoFrame.grid(column=2, row=5, columnspan=5, rowspan=3, padx=20, pady=30)
         self.graphFrame.grid(column=1, row=0, columnspan=5, rowspan=3, padx=(0,10), pady=(10, 0))
         self.calendar.grid(column=5, row=4, padx=(0,10), pady=(10, 10), sticky = "E")
         self.stadiumNameFrame.grid(column=2, row=4, pady=30)
@@ -635,12 +648,16 @@ class StadiumFrameTemplate(tk.Frame):
 
         if state: # If we only want to show today's temps
             self.calendar.grid_remove()
-            #self.configureStadiumFrame.grid()
+            self.stadiumNameFrame.grid_remove()
             self.modeSelection.pack_forget()
-        else:
-            #self.configureStadiumFrame.grid_remove()
+
+            self.capteurInfoFrame.grid()
+        else:            
+            self.stadiumNameFrame.grid()
             self.calendar.grid()
             self.modeSelection.pack(side="left", padx=(5), pady=2)
+
+            self.capteurInfoFrame.grid_remove()
 
         self.update_idletasks()
 
@@ -648,11 +665,11 @@ class StadiumFrameTemplate(tk.Frame):
         """
         Refreshes graph
         """
+        self.update_idletasks()
         # cette ligne est trop belle pour etre enlevée
         #imageData = np.array(gaussian_filter([[[0,(element+20)*7,0] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
-        self.bar = ttk.Progressbar(self, orient="horizontal", length=200, mode="indeterminate")
-        self.bar.pack()
-        self.bar.start(10)
+        
+
         try:
             self.graph.clf()
         except:
@@ -678,6 +695,9 @@ class StadiumFrameTemplate(tk.Frame):
                     bdd = sqlite3.connect(self.root.BDDPATH)
                     dayMedium = BDDapi.GetMediumTemp(bdd, self.name, self.calendar.selection_get())
                     temps = np.array([Graphs.CreateDayTemp(hour, dayMedium) for hour in nbValeurs])
+                    precip = np.array([10*np.log10(Graphs.CreateDayPrecip(hour, self.calendar.selection_get().day, dayMedium)) for hour in nbValeurs])                    
+                    # Here so we don't get errors when not showing
+                    self.axes.plot(nbValeurs, precip) 
                     bdd.close()
 
                 case "Mois":
@@ -695,29 +715,34 @@ class StadiumFrameTemplate(tk.Frame):
                     print("Ho no")
 
         if isPredicting[0]:
+            #self.bar = ttk.Progressbar(self, orient="horizontal", length=200, mode="indeterminate")
+            #self.bar.pack(side="bottom", pady=(0, self.winfo_height()//2))
+            #self.bar.start(20)
+            #self.after(1000, self.bar.destroy)
+
             self.axes.plot(nbValeurs[:isPredicting[1]], temps[:isPredicting[1]], label="Mesures")
             self.axes.plot(nbValeurs[isPredicting[1]-1:], temps[isPredicting[1]-1:], "g--", label="Prédictions")
 
             # On crée d'autres temperatures pour faire croire que tous les capteurs marchent
             # Plus il y a de capteurs plus les tempratures sont proches
-            capteurs = self.stade.GetSize()
             #for _ in range(capteurs[0]):
             #    for w in range(capteurs[1]-1):
             #        self.axes.plot(nbValeurs, self.createNewTempFromDefault(temps))
 
             self.axes.legend(loc="lower right")
+            for i, element in enumerate(self.capteurs):
+                element.configure(text=f"Capteur {i} : {Graphs.CreateDayTemp(datetime.now().hour, dayMedium)}°C")
+                element.grid(row=i//3, column=i%3)
+
         else:
             self.axes.plot(nbValeurs, temps)
 
         # set fixed axes limits
         self.axes.set_xlim(0, max(len(nbValeurs)-1, 23))
-        self.axes.set_ylim(3, 30)
+        self.axes.set_ylim(-5, 30)
         self.axes.set_xlabel("Jour")
         self.axes.set_ylabel("Temps (C°)")
         self.graphCanvas.draw()
-
-        self.bar.stop()
-        self.bar.destroy()
 
     def createNewTempFromDefault(self, oldtemps):
         rep = []

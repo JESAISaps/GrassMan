@@ -87,7 +87,9 @@ def InitializeNewStadium(bdd, name):
     """
     passedDays= CreateDaysHistory()
     temps = CreateOldTemps(passedDays)
+    precip = CreateOldPrecip(passedDays)
     AddOldTempsToDB(bdd, temps, name)
+    AddOldPrecipToDB(bdd, precip, name)
     
 def CreateDaysHistory():
     rep = []
@@ -106,17 +108,37 @@ def AddOldTempsToDB(bdd:sqlite3.Connection, temps, name:str):
     for day in temps:
         bddstade.execute(command, (name, *day))
 
+def AddOldPrecipToDB(bdd:sqlite3.Connection, precip, name:str):
+    bddstade = bdd.cursor()
+    command = "INSERT INTO Precipitation VALUES (?, ?, ?);"
+    for day in precip:
+        bddstade.execute(command, (name, *day))
+
 def CreateOldTemps(passedDays):
     rep = []
     for day in passedDays:
         rep.append((day, Graphs.CreateTemp((day.day, day.month, day.year))))
     return rep
 
+def CreateOldPrecip(passedDays):
+    rep = []
+    for day in passedDays:
+        rep.append((day, Graphs.CreatePrecip((day.day, day.month, day.year))))
+    return rep
+
+
 
 def GetMediumTemp(bdd:sqlite3.Connection, stadium:str, day:datetime) -> int:
     bddStade = bdd.cursor()
 
     command = "SELECT Temperature from Temperature WHERE Stade = ? AND Jour = ?;"
+    rep = bddStade.execute(command, (stadium, str(day) + " 00:00:00")).fetchall()[0][0]
+    return rep
+
+def GetMediumPrecip(bdd:sqlite3.Connection, stadium:str, day:datetime) -> int:
+    bddStade = bdd.cursor()
+
+    command = "SELECT Precipitation from Precipitation WHERE Stade = ? AND Jour = ?;"
     rep = bddStade.execute(command, (stadium, str(day) + " 00:00:00")).fetchall()[0][0]
     return rep
 
@@ -138,6 +160,28 @@ def GetTempsInYear(bdd, stade, year):
     bddStade = bdd.cursor()
     rep = []
     command = "SELECT TEMPERATURE FROM TEMPERATURE WHERE JOUR LIKE ? AND Stade = ?;"
+    temp = bddStade.execute(command, (str(year) + "%", stade)).fetchall()
+    for value in temp:
+        rep.append(value[0])
+    return rep
+
+def GetPrecipInMonth(bdd, stade, month, year):
+    bddStade = bdd.cursor()
+    rep = []
+    command = "SELECT Precipitation FROM Precipitation WHERE JOUR LIKE ? AND Stade = ?"
+    
+    if month < 10:
+        temp = bddStade.execute(command, (str(year)+ "-0" + str(month)+ "%", stade)).fetchall()
+    else:
+        temp = bddStade.execute(command, (str(year)+ "-" + str(month)+ "%", stade)).fetchall()
+    for value in temp:
+        rep.append(value[0])
+    return rep
+
+def GetPrecipInYear(bdd, stade, year):
+    bddStade = bdd.cursor()
+    rep = []
+    command = "SELECT Precipitation FROM Precipitation WHERE JOUR LIKE ? AND Stade = ?;"
     temp = bddStade.execute(command, (str(year) + "%", stade)).fetchall()
     for value in temp:
         rep.append(value[0])

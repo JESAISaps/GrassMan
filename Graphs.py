@@ -21,8 +21,7 @@ def CreateDayPrecip(heure, jour, dayMedium)->int:
     """
     Va utiliser la vela
     """
-    x=heure
-    rep = aleatoire(jour+heure*0.1)*(+dayMedium-2 + np.sin(x*np.pi/12 +dayMedium/6 +1+(heure*jour*x*np.pi+heure/(jour+1)))*6)
+    rep = aleatoire(jour+heure*0.1)+(+dayMedium-2 + np.sin(heure*np.pi/12 +dayMedium/6 +1+(heure*jour*np.pi+heure/(jour+1)))*6)
     
     return rep
 
@@ -50,7 +49,7 @@ def CreatePrecip(Date):
     Moyenne=[20,25,60,70,40,15,12,10,20,80,75,34]
     Mois=Date[1]-1 # On fait -1 car les dates commencent a 1
     Jour=Date[0]-1
-    PrecipDepart=Moyenne[Mois]+uniform(-1,1) + choice(-1,1)*abs(1/(Mois-(randint(0,11)+uniform(0.1,0.9))))
+    PrecipDepart=Moyenne[Mois]+uniform(-1,1) + choice([-1,1])*abs(1/(Mois-(randint(0,11)+uniform(0.1,0.9))))
     if Mois!=11:
         PrecipDepart=(PrecipDepart+(Moyenne[Mois+1]+uniform(-4,4)-PrecipDepart)*Jour/31)
     else:
