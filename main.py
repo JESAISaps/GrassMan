@@ -336,8 +336,9 @@ class SideMenu(tk.Frame):
             self.changePasswordEntry2.pack(side="top", pady=(0, 4))
             self.confirmPasswordChange.pack(side="top")
 
-            self.userInfoFrame.pack(side="top", pady=100)
             self.homeButton.pack(pady=(0, 20))
+            self.userInfoFrame.pack(pady=100)
+            
             self.LogoutButton.pack(expand= True, fill = "none")
 
         def RefreshText(self, newID):
@@ -723,8 +724,8 @@ class StadiumFrameTemplate(tk.Frame):
             self.axes.legend(loc="lower right")
 
             for i, element in enumerate(self.capteurs):
-                element.configure(text=f"Capteur {i} : {Graphs.CreateDayTemp(datetime.now().hour, dayMedium)}°C")
-                element.grid(row=i//3, column=i%3)
+                element.configure(text=f"Capteur {i+1} : {Graphs.CreateDayTemp(datetime.now().hour, dayMedium):.2f}°C")
+                element.grid(row=i//5, column=i%5)
                 element.update_idletasks()
 
         else:
@@ -788,7 +789,7 @@ class StadiumListFrame(tk.Frame):
 
         for stadium in self.stadiumsToShow:
 
-            button = ttk.Button(self.displayWidget, text=stadium, command= lambda stadium=stadium[0]: self.root.show_frame(stadium[0]))
+            button = ttk.Button(self.displayWidget, text=stadium[0], command= lambda stadium=stadium[0]: self.root.show_frame(stadium[0]))
             button.pack()
             self.shownButtons.append(button)
 
