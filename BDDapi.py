@@ -52,10 +52,10 @@ def GetClientStadiums(bdd:sqlite3.Connection, clientID:str)->list[str]:
     """
     bddStade = bdd.cursor()
     rep = []
-    command = "SELECT Nom FROM stade WHERE clientID = ?;"
+    command = "SELECT Nom, Taille FROM stade WHERE clientID = ?;"
     temp = bddStade.execute(command, (clientID,)).fetchall()
     for stadium in temp:
-        rep.append(stadium[0])
+        rep.append(stadium)
     return rep
 
 def associerdatetemperature(bddstade):
@@ -150,11 +150,7 @@ def ChangeUserPassword(bdd:sqlite3.Connection, userId, newPass):
 
 
 if __name__ == "__main__":
-    #password = "HelloWorld".encode("utf-8")
-    #hashed = bcrypt.hashpw(password, bcrypt.gensalt())
-    #command = f"{hashed}"
-    #print(hashed, type(hashed))
-    #print(command)
+    
     s= stades.Stade("Velodrome",(100,50),"hiver")
     bdd = sqlite3.connect("./data/bddstade.db")
     importtemperature(s.CreateFirstTempMap("hiver"),bdd,"Velodrome",s.GetIdStade())

@@ -13,16 +13,19 @@ def CreateDayTemp(heure, dayMedium)->int:
     """
     Va utiliser la vela
     """
-    rep = dayMedium-2 + np.sin(heure*np.pi/12 +dayMedium/6 +1)*6
+    rep = dayMedium-2 + np.sin(heure*np.pi/12 +aleatoire(dayMedium)/12+4.5)*6
     
     return rep
 
-def CreateDayPrecip(heure, jour, dayMedium)->int:
+def CreateDayPrecip(heure, jour, Mois, dayMediumTemp)->int:
     """
     Va utiliser la vela
     """
-    x=heure
-    rep = aleatoire(jour+heure*0.1)*(+dayMedium-2 + np.sin(x*np.pi/12 +dayMedium/6 +1+(heure*jour*x*np.pi+heure/(jour+1)))*6)
+    Moyenne=[20,25,60,70,40,15,12,10,20,80,75,34]
+    dayMedium=Moyenne[Mois-1]
+    if int((dayMedium-jour+aleatoire(jour)))%3==0:
+        return 0
+    rep =0.1*aleatoire(heure+jour*0.1)*(+dayMedium-2 + heure/6 + np.sin(np.pi/12 +dayMedium/6 +1+(heure*jour*np.pi+heure/(jour+1)))*6)
     
     return rep
 
@@ -45,19 +48,6 @@ def CreateTemp(Date):
         
     return TempDepart
 
-def CreatePrecip(Date):
-
-    Moyenne=[20,25,60,70,40,15,12,10,20,80,75,34]
-    Mois=Date[1]-1 # On fait -1 car les dates commencent a 1
-    Jour=Date[0]-1
-    PrecipDepart=Moyenne[Mois]+uniform(-1,1) + choice(-1,1)*abs(1/(Mois-(randint(0,11)+uniform(0.1,0.9))))
-    if Mois!=11:
-        PrecipDepart=(PrecipDepart+(Moyenne[Mois+1]+uniform(-4,4)-PrecipDepart)*Jour/31)
-    else:
-        PrecipDepart=(PrecipDepart+(Moyenne[0]+uniform(-4,4)-PrecipDepart)*Jour/31)
-        
-    return PrecipDepart
-
 def DrawStadiumExample(nbX, nbY):
 
     imageData = gaussian_filter([[(0,(40 + randint(1, 10))*7,0) for _ in range(100)] for _ in range(50)], sigma=0.75)
@@ -75,6 +65,3 @@ def DrawStadiumExample(nbX, nbY):
     image = image.resize((500, 250))        
     photo = ImageTk.PhotoImage(image)        
     return photo
-    
-if __name__ == "__main__":
-    print(CreateDayPrecip(21,26,30))

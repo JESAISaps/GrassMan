@@ -63,11 +63,9 @@ class App(Tk):
         if type(frame) == StadiumFrameTemplate:
             frame.UpdateGraph()
 
-    def AddStadiumFrame(self, name, dimensions=(100, 50)):
+    def AddStadiumFrame(self, name, dimensions=(10, 5)):
         if name in ["HomeFrame", "CreateStadium", "StadiumList"]:
-            print("Nom de stade reservé")
             return
-
         self.frames[name] = StadiumFrameTemplate(self.container, self, name, dimensions)
 
     def createUserSession(self, id):
@@ -81,8 +79,9 @@ class App(Tk):
 
         stadiumList = self.client.GetClientStadiums()
         #print(stadiumList)
+        #TODO: Choper les infos du stade dans la requette et les mettres dans l'objet (dimensions)
         for stadium in stadiumList:
-            self.AddStadiumFrame(stadium)
+            self.AddStadiumFrame(stadium[0])
 
     def DisconnectClient(self):
         self.show_frame("HomeFrame")
@@ -98,12 +97,12 @@ class Client:
     def __init__(self, root:App, id=None):
         self.root = root
         self.id = id
-        self.stadiumList = self.RefreshClientStadiums()
+        self.stadiumList:list[tuple[str, tuple[int, int]]] = self.RefreshClientStadiums()
         
     def GetClientId(self)->str:
         return self.id
     
-    def GetClientStadiums(self)->list[str]:
+    def GetClientStadiums(self)->list[tuple[str, tuple[int, int]]]:
         return self.stadiumList
     
     def RefreshClientStadiums(self)->list[str]:
@@ -119,7 +118,7 @@ class SideMenu(tk.Frame):
 
     def __init__(self, parent, root:App):
         self.root = root
-        self.root.update_idletasks()
+        self.root.update() # For the width to get updated
         self.min_w = self.root.winfo_width()//15 # Minimum width of the frame
         self.max_w = self.root.winfo_width()//5 # Maximum width of the frame
         self.cur_width = self.min_w # Increasing width of the frame
@@ -131,7 +130,6 @@ class SideMenu(tk.Frame):
         # Define the icon to be shown and resize it
         self.plusImage = ImageTk.PhotoImage(Image.open("./data/images/plus.png").resize((40, 40)))
 
-        self.root.update() # For the width to get updated
 
         tk.Frame.__init__(self, parent, bg=GREEN,width=50,height=root.winfo_height())
         self.pack(side="right", fill=tk.Y)
@@ -317,11 +315,11 @@ class SideMenu(tk.Frame):
 
             self.changePasswordLabel1 = ttk.Label(self.userInfoFrame, text="Changer votre mot de passe :")
             self.password1 = tk.StringVar()
-            self.changePasswordEntry1 = ttk.Entry(self.userInfoFrame, textvariable=self.password1)
+            self.changePasswordEntry1 = ttk.Entry(self.userInfoFrame, textvariable=self.password1, show="•")
 
             self.changePasswordLabel2 = ttk.Label(self.userInfoFrame, text="Confirmer le mot de passe")
             self.password2 = tk.StringVar()            
-            self.changePasswordEntry2 = ttk.Entry(self.userInfoFrame, textvariable=self.password2)
+            self.changePasswordEntry2 = ttk.Entry(self.userInfoFrame, textvariable=self.password2, show="•")
 
             self.confirmPasswordChange = ttk.Button(self.userInfoFrame, text="Confirmer", command=self.ConfirmPasswordChange)
 
@@ -567,17 +565,18 @@ class StadiumFrameTemplate(tk.Frame):
             if state:
                 return "On"
             return "Off"
+        
         self.isHeating = tk.BooleanVar(value=False)
         self.heatingLabel = ttk.Label(self.configureStadiumFrame, text="Chauffage : " + GetBoolStateString(self.isHeating.get()))
         self.heatingButton = ttk.Button(self.configureStadiumFrame, text="Allumer / Eteindre", command= lambda : (self.isHeating.set( not self.isHeating.get()),
-                                                                                                        self.heatingLabel.configure(text="Chauffage : " + GetBoolStateString(self.isHeating.get())),
-                                                                                                        self.update_idletasks()))
+                                                                                                        self.heatingLabel.configure(text="Chauffage : " + GetBoolStateString(self.isHeating.get()))))
+                                                                                                        #, self.update_idletasks()))
         
         self.arrosage = tk.BooleanVar(value=False)
         self.arrosageLabel = ttk.Label(self.configureStadiumFrame, text="Arrosage : " + GetBoolStateString(self.arrosage.get()))
         self.arrosageButton = ttk.Button(self.configureStadiumFrame, text="Allumer / Eteindre", command= lambda : (self.arrosage.set( not self.arrosage.get()),
-                                                                                                        self.arrosageLabel.configure(text="Arrosage : " + GetBoolStateString(self.arrosage.get())),
-                                                                                                        self.update_idletasks()))        
+                                                                                                        self.arrosageLabel.configure(text="Arrosage : " + GetBoolStateString(self.arrosage.get()))))
+                                                                                                        #, self.update_idletasks()))        
         
         self.dimText = f"   Capteurs: \nLongueur: {dimentions[0]}\nLargeur: {dimentions[1]}"
         self.repartitionCapteursLabel = ttk.Label(self.configureStadiumFrame, text = self.dimText)
@@ -590,8 +589,8 @@ class StadiumFrameTemplate(tk.Frame):
         self.stadiumNameLabel = ttk.Label(self.stadiumNameFrame, text=self.name, font="Bold 30")
 
         self.showTodayBool = tk.BooleanVar(value=False)
-        self.showToday = ttk.Checkbutton(self.graphFrame, text="Aujourd'hui", variable=self.showTodayBool, command= self.UpdateGraph)
-        self.showTodayBool.trace_add("write", lambda e, a, z: self.ToggleTodayGraph(self.showTodayBool.get()))
+        self.showToday = ttk.Checkbutton(self.graphFrame, text="Aujourd'hui", variable=self.showTodayBool, command= lambda : self.UpdateGraph(True))
+        #self.showTodayBool.trace_add("write", lambda e, a, z: self.ToggleTodayGraph(self.showTodayBool.get()))
         
         self.graph = Figure(figsize=(6.8,4.2), dpi=100)
         self.calendar = tkcalendar.Calendar(self, locale="fr",day= (datetime.today() - timedelta(days=1)).day, maxdate=datetime.today() - timedelta(days=1),
@@ -608,6 +607,17 @@ class StadiumFrameTemplate(tk.Frame):
         self.stade = Stade(nomStade, dimentions)
         self.calendar.bind("<<CalendarSelected>>", lambda e: self.UpdateGraph())
 
+        #region InfoCapteurs
+
+        self.capteurInfoFrame = tk.Frame(self, highlightcolor="black", highlightthickness=1)
+        self.capteurs:list[tk.Button] = []
+        nbCapteurs = self.stade.GetSize()
+        for i in range(nbCapteurs[0]):
+            for j in range(nbCapteurs[1]):
+                self.capteurs.append(ttk.Label(self.capteurInfoFrame, text= f"Capteur {str(i+j)} : {0}°C"))
+
+        #endregion
+
         self.heatingLabel.pack(side="top")
         self.heatingButton.pack(side="top")
         self.arrosageLabel.pack(side="top", pady=(10, 0))
@@ -620,6 +630,7 @@ class StadiumFrameTemplate(tk.Frame):
         self.modeSelection.pack(side="left", padx=(5), pady=2)
         self.showToday.pack(side="right", padx=(5), pady=2)
 
+        self.capteurInfoFrame.grid(column=1, row=5, columnspan=4, rowspan=3, padx=20, pady=30)
         self.graphFrame.grid(column=1, row=0, columnspan=5, rowspan=3, padx=(0,10), pady=(10, 0))
         self.calendar.grid(column=5, row=4, padx=(0,10), pady=(10, 10), sticky = "E")
         self.stadiumNameFrame.grid(column=2, row=4, pady=30)
@@ -635,42 +646,45 @@ class StadiumFrameTemplate(tk.Frame):
 
         if state: # If we only want to show today's temps
             self.calendar.grid_remove()
-            #self.configureStadiumFrame.grid()
+            self.stadiumNameFrame.grid_remove()
             self.modeSelection.pack_forget()
+            self.capteurInfoFrame.grid()
         else:
-            #self.configureStadiumFrame.grid_remove()
+            self.capteurInfoFrame.grid_remove()
+            self.stadiumNameFrame.grid()
             self.calendar.grid()
             self.modeSelection.pack(side="left", padx=(5), pady=2)
 
-        self.update_idletasks()
-
-    def UpdateGraph(self):
+    def UpdateGraph(self, isToggling=False):
         """
         Refreshes graph
         """
         # cette ligne est trop belle pour etre enlevée
         #imageData = np.array(gaussian_filter([[[0,(element+20)*7,0] for element in ligne] for ligne in data], sigma=0.75)).astype(np.uint8)
-        self.bar = ttk.Progressbar(self, orient="horizontal", length=200, mode="indeterminate")
-        self.bar.pack()
-        self.bar.start(10)
+        
         try:
             self.graph.clf()
         except:
             return
+        if isToggling:
+            self.ToggleTodayGraph(self.showTodayBool.get())
+
         self.axes = self.graph.add_subplot(111)
         isPredicting = (False, 24)
-        if(self.showTodayBool.get()):
+        if(self.showTodayBool.get()):            
+
             nbValeurs = np.arange(datetime.now().hour + 1)
             bdd = sqlite3.connect(self.root.BDDPATH)
             dayMedium = BDDapi.GetMediumTemp(bdd, self.name, datetime.now().date())
             temps = np.array([Graphs.CreateDayTemp(hour, dayMedium) for hour in nbValeurs])
 
-            if self.isHeating.get() or self.arrosage.get() or True: # Flemme de tout enlever car au final on fait ca tout le temps 
-                isPredicting = (True, nbValeurs.size-1)
-                for hour in range(nbValeurs.size, 24):
-                    nbValeurs = np.append(nbValeurs, hour)
-                    temps = np.append(temps, Graphs.CreateDayTemp(hour, dayMedium+ 7*self.isHeating.get() - 5*self.arrosage.get()))
+
+            isPredicting = (True, nbValeurs.size-1)
+            for hour in range(nbValeurs.size, 24):
+                nbValeurs = np.append(nbValeurs, hour)
+                temps = np.append(temps, Graphs.CreateDayTemp(hour, dayMedium+ 7*self.isHeating.get() - 5*self.arrosage.get()))
             bdd.close()
+
         else:
             match self.modeSelection.get():
                 case "Jour":
@@ -678,6 +692,11 @@ class StadiumFrameTemplate(tk.Frame):
                     bdd = sqlite3.connect(self.root.BDDPATH)
                     dayMedium = BDDapi.GetMediumTemp(bdd, self.name, self.calendar.selection_get())
                     temps = np.array([Graphs.CreateDayTemp(hour, dayMedium) for hour in nbValeurs])
+                    precip = np.array([Graphs.CreateDayPrecip(hour, self.calendar.selection_get().day,self.calendar.selection_get().month,dayMedium) for hour in nbValeurs])
+                    precax=self.axes.twinx()
+                    precax.set_ylim(0, 100)
+                    precax.set_ylabel("Precipitation (mm)")
+                    precax.plot(nbValeurs, precip,"C2",label="Precipitation")
                     bdd.close()
 
                 case "Mois":
@@ -700,24 +719,25 @@ class StadiumFrameTemplate(tk.Frame):
 
             # On crée d'autres temperatures pour faire croire que tous les capteurs marchent
             # Plus il y a de capteurs plus les tempratures sont proches
-            capteurs = self.stade.GetSize()
-            #for _ in range(capteurs[0]):
-            #    for w in range(capteurs[1]-1):
-            #        self.axes.plot(nbValeurs, self.createNewTempFromDefault(temps))
 
             self.axes.legend(loc="lower right")
+
+            for i, element in enumerate(self.capteurs):
+                element.configure(text=f"Capteur {i} : {Graphs.CreateDayTemp(datetime.now().hour, dayMedium)}°C")
+                element.grid(row=i//3, column=i%3)
+                element.update_idletasks()
+
         else:
             self.axes.plot(nbValeurs, temps)
 
         # set fixed axes limits
         self.axes.set_xlim(0, max(len(nbValeurs)-1, 23))
-        self.axes.set_ylim(3, 30)
+        self.axes.set_ylim(-5, 30)
         self.axes.set_xlabel("Jour")
         self.axes.set_ylabel("Temps (C°)")
         self.graphCanvas.draw()
 
-        self.bar.stop()
-        self.bar.destroy()
+        #self.update_idletasks()
 
     def createNewTempFromDefault(self, oldtemps):
         rep = []
@@ -768,7 +788,7 @@ class StadiumListFrame(tk.Frame):
 
         for stadium in self.stadiumsToShow:
 
-            button = ttk.Button(self.displayWidget, text=stadium, command= lambda stadium=stadium: self.root.show_frame(stadium))
+            button = ttk.Button(self.displayWidget, text=stadium, command= lambda stadium=stadium[0]: self.root.show_frame(stadium[0]))
             button.pack()
             self.shownButtons.append(button)
 

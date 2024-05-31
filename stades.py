@@ -1,14 +1,11 @@
-from random import choice, uniform
-from datetime import datetime, timedelta
-import calendar
-from sqlite3 import Connection
+from random import choice
 
 class Stade:
 
     def __init__(self, nom:str, dimensions) -> None:
         self.nom = nom
-        self.longueur = 100
-        self.largeur = 50
+        self.longueur = dimensions[0]
+        self.largeur = dimensions[1]
 
         self.meteo = self.createMeteo()
 
