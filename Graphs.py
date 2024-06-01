@@ -25,7 +25,7 @@ def CreateDayPrecip(heure, jour, Mois, dayMediumTemp)->int:
     dayMedium=Moyenne[Mois-1]
     if int((dayMedium-jour+aleatoire(dayMedium)))%3==0:
         return 0
-    rep =0.1*aleatoire(heure+jour*0.1)*(+dayMedium-2 + heure/6 + np.sin(np.pi/12 +dayMedium/6 +1+(heure*jour*np.pi+heure/(jour+1)))*6)
+    rep =0.1*aleatoire(heure+dayMediumTemp+jour*0.1)*(+dayMedium-2 + heure/6 + np.sin(np.pi/12 +dayMediumTemp/6 +1+(heure*jour*np.pi+heure/(jour+1)))*6)
     
     return rep
 

@@ -292,6 +292,12 @@ class SideMenu(tk.Frame):
             self.UserCreatedLabel.pack(side="bottom", pady=(0, 2))
             self.after(2000, self.UserCreatedLabel.destroy)
 
+            self.name.set("")
+            self.name2.set("")
+            self.id.set("")
+            self.password1.set("")
+            self.password2.set("")
+
         def CreateUser(self, id, psw1, psw2, name, name2)->None:        
             bdd = sqlite3.connect(self.root.BDDPATH)
             if psw1 != psw2:
@@ -363,6 +369,9 @@ class SideMenu(tk.Frame):
             self.passwordChangeSucces.pack(side="bottom", pady=(0, 4))
             self.after(2000, self.passwordChangeSucces.pack_forget)
 
+            self.password2.set("")
+            self.password1.set("")
+
         def ConfirmPasswordChange(self):
             if self.password1.get() != self.password2.get():
                 self.MismatchPasswordError()
@@ -417,6 +426,8 @@ class HomeFrame(tk.Frame):
             self.root.frames["StadiumList"].ShowButtons()
             self.sideMenu.ChangeFrame("AccountMenu")
             self.sideMenu.frames["AccountMenu"].RefreshText(self.root.client.GetClientId())
+            self.userId.set("")
+            self.password.set("")
         else:
             self.showLogMessage("Erreur, veuillez verifiez vos identifiants et mot de passe.", "red")
 
@@ -465,8 +476,8 @@ class CreateStadiumFrame(tk.Frame):
         self.YFrame = tk.Frame(self.CapteursChoiceFrame, highlightbackground="black", highlightthickness=1)
 
         self.xDim = tk.IntVar(value=1)
-        self.xDim.trace_add("write", lambda e,a,z: self.RefreshStadium())
         self.yDim = tk.IntVar(value=1)
+        self.xDim.trace_add("write", lambda e,a,z: self.RefreshStadium())
         self.yDim.trace_add("write", lambda e,a,z: self.RefreshStadium())
         self.dimensionBoxX = ttk.Combobox(self.XFrame, textvariable=self.xDim, state="readonly")
         self.dimensionBoxY = ttk.Combobox(self.YFrame, textvariable=self.yDim, state="readonly")    
@@ -527,6 +538,11 @@ class CreateStadiumFrame(tk.Frame):
             self.root.AddStadiumFrame(self.stadiumName.get(), (int(self.xDim.get()), int(self.yDim.get())))
             # Shows new stadium Frame
             self.root.show_frame(self.stadiumName.get())
+
+            self.stadiumName.set("")
+
+            self.xDim.set(1)
+            self.yDim.set(1)
             
         else:
             self.ErrorLabel.configure(text="Veuillez verifier vos entrées")
@@ -563,7 +579,7 @@ class StadiumFrameTemplate(tk.Frame):
         self.root = root
         self.name = nomStade
 
-        self.stadiumNameFrame = tk.Frame(self, highlightbackground="black", highlightthickness=1)
+        self.stadiumNameFrame = tk.Frame(self)
         self.graphFrame = tk.Frame(self, highlightbackground="black", highlightthickness=1)
         self.configureStadiumFrame = tk.Frame(self, highlightbackground="black", highlightthickness=1)
 
