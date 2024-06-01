@@ -3,7 +3,7 @@ import stades
 import sqlite3
 from datetime import datetime, timedelta
 import Graphs
-from random import uniform
+from random import uniform, randint
 
 def connection(bdd, id,mdp):
     bddstade = bdd.cursor()
@@ -108,8 +108,9 @@ def AddOldTempsToDB(bdd:sqlite3.Connection, temps, name:str):
 
 def CreateOldTemps(passedDays):
     rep = []
+    dif = randint(-5, 5) #Facon avec laquelle tous les stades n'ont pas une temp moyenne trop proche
     for day in passedDays:
-        rep.append((day, Graphs.CreateTemp((day.day, day.month, day.year))))
+        rep.append((day, dif + Graphs.CreateTemp((day.day, day.month, day.year))))
     return rep
 
 

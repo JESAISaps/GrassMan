@@ -65,6 +65,9 @@ class App(Tk):
         if type(frame) == StadiumFrameTemplate:
             frame.UpdateGraph()
 
+        if type(frame) == StadiumListFrame:
+            frame.ShowButtons()
+
     def AddStadiumFrame(self, name, dimensions=("10", "5")):
         if name in ["HomeFrame", "CreateStadium", "StadiumList"]:
             return
@@ -97,7 +100,8 @@ class Client:
     def __init__(self, root:App, id=None):
         self.root = root
         self.id = id
-        self.stadiumList:list[tuple[str, tuple[int, int]]] = self.RefreshClientStadiums()
+        self.stadiumList:list[tuple[str, tuple[int, int]]] = []
+        self.RefreshClientStadiums()
         
     def GetClientId(self)->str:
         return self.id
@@ -805,7 +809,7 @@ class StadiumListFrame(tk.Frame):
         for i in range(len(self.shownButtons)):
             item = self.shownButtons.pop(0)
             item.destroy()
-
+        self.root.client.RefreshClientStadiums()
         self.stadiumsToShow = self.root.client.GetClientStadiums()
 
         for stadium in self.stadiumsToShow:
