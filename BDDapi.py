@@ -114,10 +114,12 @@ def CreateOldTemps(passedDays):
 
 
 def GetMediumTemp(bdd:sqlite3.Connection, stadium:str, day:datetime) -> int:
+    bdd.set_trace_callback(print)
     bddStade = bdd.cursor()
 
     command = "SELECT Temperature from Temperature WHERE Stade = ? AND Jour = ?;"
     rep = bddStade.execute(command, (stadium, str(day) + " 00:00:00")).fetchall()[0][0]
+    print(rep)
     return rep
 
 def GetTempsInMonth(bdd, stade, month, year):

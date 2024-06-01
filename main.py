@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from calendar import monthrange, isleap
+from math import sqrt
 
 from stades import Stade
 
@@ -596,7 +597,7 @@ class StadiumFrameTemplate(tk.Frame):
         self.graph = Figure(figsize=(6.8,4.2), dpi=100)
         self.calendar = tkcalendar.Calendar(self, locale="fr",day= (datetime.today() - timedelta(days=1)).day, maxdate=datetime.today() - timedelta(days=1),
                                             background=GREY, selectbackground = GREEN, font="Arial 12", foreground="black")
-
+        self.calendar.selection_set(datetime.today() - timedelta(1))
         self.graphCanvas = FigureCanvasTkAgg(self.graph, master=self.graphFrame)
         self.graphCanvas.draw()
 
@@ -724,7 +725,7 @@ class StadiumFrameTemplate(tk.Frame):
             self.axes.legend(loc="lower right")
 
             for i, element in enumerate(self.capteurs):
-                element.configure(text=f"Capteur {i+1} : {Graphs.CreateDayTemp(datetime.now().hour, dayMedium):.2f}°C")
+                element.configure(text=f"Capteur {i+1} : {Graphs.CreateDayTemp(datetime.now().hour, dayMedium)- sqrt((i//5)**2 + (i%5)**2)* 0.07:.2f}°C")
                 element.grid(row=i//5, column=i%5)
                 element.update_idletasks()
 
@@ -788,8 +789,8 @@ class StadiumListFrame(tk.Frame):
         self.stadiumsToShow = self.root.client.GetClientStadiums()
 
         for stadium in self.stadiumsToShow:
-
-            button = ttk.Button(self.displayWidget, text=stadium[0], command= lambda stadium=stadium[0]: self.root.show_frame(stadium[0]))
+            print(stadium)
+            button = ttk.Button(self.displayWidget, text=stadium[0], command= lambda stadium=stadium[0]: self.root.show_frame(stadium))
             button.pack()
             self.shownButtons.append(button)
 
