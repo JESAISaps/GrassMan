@@ -12,6 +12,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from calendar import monthrange, isleap
 from math import sqrt
+from matplotlib.colors import TABLEAU_COLORS
 
 from stades import Stade
 
@@ -64,10 +65,10 @@ class App(Tk):
         if type(frame) == StadiumFrameTemplate:
             frame.UpdateGraph()
 
-    def AddStadiumFrame(self, name, dimensions=(10, 5)):
+    def AddStadiumFrame(self, name, dimensions=("10", "5")):
         if name in ["HomeFrame", "CreateStadium", "StadiumList"]:
             return
-        self.frames[name] = StadiumFrameTemplate(self.container, self, name, dimensions)
+        self.frames[name] = StadiumFrameTemplate(self.container, self, name, (int(dimensions[0]), int(dimensions[1])))
 
     def createUserSession(self, id):
         if self.client is not None:
@@ -79,10 +80,8 @@ class App(Tk):
     def CreateStadiumFrames(self):
 
         stadiumList = self.client.GetClientStadiums()
-        #print(stadiumList)
-        #TODO: Choper les infos du stade dans la requette et les mettres dans l'objet (dimensions)
         for stadium in stadiumList:
-            self.AddStadiumFrame(stadium[0])
+            self.AddStadiumFrame(stadium[0], stadium[1].split("x"))
 
     def DisconnectClient(self):
         self.show_frame("HomeFrame")
@@ -103,7 +102,7 @@ class Client:
     def GetClientId(self)->str:
         return self.id
     
-    def GetClientStadiums(self)->list[tuple[str, tuple[int, int]]]:
+    def GetClientStadiums(self)->list[tuple[str, str]]:
         return self.stadiumList
     
     def RefreshClientStadiums(self)->list[str]:
@@ -371,6 +370,7 @@ class SideMenu(tk.Frame):
 
                 self.PasswordChangeSuccces()
 
+
 class HomeFrame(tk.Frame):
 
     def __init__(self, parent:tk.Frame, root:App):
@@ -580,11 +580,17 @@ class StadiumFrameTemplate(tk.Frame):
                                                                                                         self.arrosageLabel.configure(text="Arrosage : " + GetBoolStateString(self.arrosage.get()))))
                                                                                                         #, self.update_idletasks()))        
         
+        self.showSeuil = tk.BooleanVar(value=False)
+        self.showSeuilLabel = ttk.Label(self.configureStadiumFrame, text="Seuils : " + GetBoolStateString(self.showSeuil.get()))
+        self.showSeuilButton = ttk.Button(self.configureStadiumFrame, text="Montrer / Cacher", command= lambda : (self.showSeuil.set(not self.showSeuil.get()),
+                                                                                                            self.showSeuilLabel.configure(text="Seuils : " + GetBoolStateString(self.showSeuil.get()))))
+
         self.dimText = f"   Capteurs: \nLongueur: {dimentions[0]}\nLargeur: {dimentions[1]}"
         self.repartitionCapteursLabel = ttk.Label(self.configureStadiumFrame, text = self.dimText)
         
         self.isHeating.trace_add("write", lambda e,a,z: self.UpdateGraph())
         self.arrosage.trace_add("write",lambda e,a,z: self.UpdateGraph())
+        self.showSeuil.trace_add("write", lambda e,a,z: self.UpdateGraph())
 
         self.repartitionCapteursLabel.pack(side="top", pady=(3, 0))
 
@@ -611,19 +617,23 @@ class StadiumFrameTemplate(tk.Frame):
 
         #region InfoCapteurs
 
-        self.capteurInfoFrame = tk.Frame(self, highlightcolor="black", highlightthickness=1)
+        self.capteurInfoFrame = ScrolledFrame(self, width = 500, height = 200, scrollbars = "vertical", use_ttk = True)        
+        self.capteurInfoFrame.bind_arrow_keys(self.root)
+        self.capteurInfoFrame.bind_scroll_wheel(self.root)
+
+        self.displayCapteur = self.capteurInfoFrame.display_widget(tk.Frame)
         self.capteurs:list[tk.Button] = []
         nbCapteurs = self.stade.GetSize()
         for i in range(nbCapteurs[0]):
             for j in range(nbCapteurs[1]):
-                self.capteurs.append(ttk.Label(self.capteurInfoFrame, text= f"Capteur {str(i+j)} : {0}°C"))
+                self.capteurs.append(ttk.Label(self.displayCapteur, text= f"Capteur {str(i+j)} : {0}°C"))
 
         #endregion
 
         self.heatingLabel.pack(side="top")
         self.heatingButton.pack(side="top")
         self.arrosageLabel.pack(side="top", pady=(10, 0))
-        self.arrosageButton.pack(side="top")
+        self.arrosageButton.pack(side="top", pady=(0, 10))
 
         self.stadiumNameLabel.pack()
         self.repartitionCapteursLabel.pack()
@@ -651,11 +661,15 @@ class StadiumFrameTemplate(tk.Frame):
             self.stadiumNameFrame.grid_remove()
             self.modeSelection.pack_forget()
             self.capteurInfoFrame.grid()
+            self.showSeuilLabel.pack(side="top")
+            self.showSeuilButton.pack(side="top")
         else:
             self.capteurInfoFrame.grid_remove()
             self.stadiumNameFrame.grid()
             self.calendar.grid()
-            self.modeSelection.pack(side="left", padx=(5), pady=2)
+            self.modeSelection.pack(side="left", padx=(5), pady=2)            
+            self.showSeuilLabel.pack_forget()
+            self.showSeuilButton.pack_forget()
 
     def UpdateGraph(self, isToggling=False):
         """
@@ -697,7 +711,7 @@ class StadiumFrameTemplate(tk.Frame):
                     precip = np.array([Graphs.CreateDayPrecip(hour, self.calendar.selection_get().day,self.calendar.selection_get().month,dayMedium) for hour in nbValeurs])
                     precax=self.axes.twinx()
                     precax.set_ylim(0, 100)
-                    precax.set_ylabel("Precipitation (mm)")
+                    precax.set_ylabel("Precipitation (mm)", color="green")
                     precax.plot(nbValeurs, precip,"C2",label="Precipitation")
                     bdd.close()
 
@@ -716,27 +730,31 @@ class StadiumFrameTemplate(tk.Frame):
                     print("Ho no")
 
         if isPredicting[0]:
-            self.axes.plot(nbValeurs[:isPredicting[1]], temps[:isPredicting[1]], label="Mesures")
-            self.axes.plot(nbValeurs[isPredicting[1]-1:], temps[isPredicting[1]-1:], "g--", label="Prédictions")
+            self.axes.plot(nbValeurs[:isPredicting[1]], temps[:isPredicting[1]], label="Mesures", linewidth=2)
+            self.axes.plot(nbValeurs[isPredicting[1]-1:], temps[isPredicting[1]-1:], "g--", label="Prédictions", linewidth=2)
+
+            if self.showSeuil.get():
+                self.axes.plot(nbValeurs, [25]*len(nbValeurs), "r-.", linewidth=.5)
+                self.axes.plot(nbValeurs, [5]*len(nbValeurs), "r-.", linewidth=.5)
 
             # On crée d'autres temperatures pour faire croire que tous les capteurs marchent
             # Plus il y a de capteurs plus les tempratures sont proches
-
-            self.axes.legend(loc="lower right")
-
             for i, element in enumerate(self.capteurs):
                 element.configure(text=f"Capteur {i+1} : {Graphs.CreateDayTemp(datetime.now().hour, dayMedium)- sqrt((i//5)**2 + (i%5)**2)* 0.07:.2f}°C")
                 element.grid(row=i//5, column=i%5)
                 element.update_idletasks()
-
+            
+            leg = self.axes.legend(loc="lower right")
+            for line in leg.get_lines():
+                line.set_linewidth(2)
         else:
             self.axes.plot(nbValeurs, temps)
 
         # set fixed axes limits
         self.axes.set_xlim(0, max(len(nbValeurs)-1, 23))
-        self.axes.set_ylim(-5, 30)
+        self.axes.set_ylim(-5, 35)
         self.axes.set_xlabel("Jour")
-        self.axes.set_ylabel("Temps (C°)")
+        self.axes.set_ylabel("Temps (C°)", color=TABLEAU_COLORS["tab:blue"])
         self.graphCanvas.draw()
 
         #self.update_idletasks()
@@ -768,6 +786,8 @@ class StadiumListFrame(tk.Frame):
         self.yourStadiumsLabel.pack(side="top", pady=(0, 5))
 
         self.list = ScrolledFrame(self.listFrame, width = 400, height = 200, scrollbars = "vertical", use_ttk = True)
+        self.list.bind_arrow_keys(self.root)
+        self.list.bind_scroll_wheel(self.root)
         self.list.pack(side="bottom")
         self.displayWidget = self.list.display_widget(tk.Frame)
 
@@ -789,7 +809,6 @@ class StadiumListFrame(tk.Frame):
         self.stadiumsToShow = self.root.client.GetClientStadiums()
 
         for stadium in self.stadiumsToShow:
-            print(stadium)
             button = ttk.Button(self.displayWidget, text=stadium[0], command= lambda stadium=stadium[0]: self.root.show_frame(stadium))
             button.pack()
             self.shownButtons.append(button)

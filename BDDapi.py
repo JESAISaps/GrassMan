@@ -38,7 +38,7 @@ def NewStadium(bdd:sqlite3.Connection, name:str, size:tuple, nbCapteurs:int, cli
     bddStade = bdd.cursor()
 
     command = "INSERT INTO stade VALUES (?, ?, ?, ?);"
-    bddStade.execute(command, (name, str(size)[1:-1], nbCapteurs, clientID))
+    bddStade.execute(command, (name, str(size[0]) + "x" + str(size[1]), nbCapteurs, clientID))
 
 def CheckIfStadiumExists(bdd:sqlite3.Connection, name:str, clientID:str):
     bddstade = bdd.cursor()
