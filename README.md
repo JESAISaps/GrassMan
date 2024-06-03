@@ -8,7 +8,7 @@ https://trello.com/invite/b/Uy4KVh03/ATTIb68c9ba514a800effa7acfc58a34aa70FA566FE
 
 Verifiez que vous ayez bien python 3.12 + installé, et pip dans le PATH.
 
-Double cliquez sur le fichier "SetupModulesAndLaunch", puis votre ordinateur téléchargera les bibliotheques requises au fonctionnement de l'appli et puis la lancera.
+Double cliquez sur le fichier "SetupModulesAndLaunch", puis votre ordinateur téléchargera les bibliothèques requises au fonctionnement de l'appli et puis la lancera.
 
 Après cette étape, il faudra cliquer sur "GrassMan" pour lancer l'application.
 
