@@ -65,14 +65,14 @@ class CreateStadiumFrame(tk.Frame):
         self.dimensionBoxX.pack(side="bottom")
         self.dimensionBoxY.pack(side="bottom")
 
-        self.XFrame.pack(side="top")
-        self.YFrame.pack(side="top")
+        self.XFrame.grid(column=1, row=0)
+        self.YFrame.grid(column=2, row=0)
 
         self.StadiumImageLabel.pack(side="bottom", pady=(50, 0))
 
         self.nameChoiceFrame.pack(side="left", padx=(100, 0))
         self.CapteursChoiceFrame.pack(side="right", anchor="ne", pady=(100, 0), padx=(0, 20))
-        self.ImageExampleFrame.pack(side="bottom", anchor = "s")
+        self.ImageExampleFrame.grid(column=0, row=3, rowspan=3, columnspan=4, pady=(50, 0))
 
         self.confirmButton = ttk.Button(self.nameChoiceFrame, text="Confirmer", command=self.CreateNewStadium)
         self.confirmButton.pack(side="bottom", pady=(10, 0))
