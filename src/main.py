@@ -19,6 +19,8 @@ class App(Tk):
         #initializes Tk
         super().__init__()
 
+        self.title("GrassMan")
+
         # creating a container
         self.container = tk.Frame(self)
         self.container.pack(side = "top", fill = "both", expand = True)
