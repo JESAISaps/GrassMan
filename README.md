@@ -13,3 +13,16 @@ Double cliquez sur le fichier "SetupModulesAndLaunch", puis votre ordinateur té
 Après cette étape, il faudra cliquer sur "GrassMan" pour lancer l'application.
 
 Note: Il ne faut pas fermer la console lors de l'execution, même après la fin des téléchargements, car comme python tourne sur la console, l'appli se fermera aussi.
+
+Lien du GitHub: https://github.com/JESAISaps/GrassMan
+
+
+# DOCUMENTATION
+
+Lors du lancement, une page s'ouvre, avec l'écran de connexion, et il faut deplacer la souris sur la droite pour afficher le menu de création de compte. Le bouton "Bloquer le menu" permet de faire en sorte que le menu ne se ferme pas si on sort la souris de la page.
+Une fois le compte créé, vous pouvez vous connecter et créer un premier stade en choisissant le nombre de capteurs et leur position.
+Vous pouvez maintenant accéder aux températures du jour, du mois précédent et de l'année ainsi que gérer les températures du jour avec l'arrosage et le chauffage, en cliquant sur "aujourd'hui": 
+![image](./src/data/images/todayImage.png)
+Pour cela, vous pouvez rendre visible les seuils de température conseillés et adapter votre gestion du stade à l'aide des prévisions.
+
+Pour vous déconnecter, ou revenir à la liste des différents stades, il suffit de revenir dans le menu à droite. 
