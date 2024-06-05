@@ -6,11 +6,14 @@ from matplotlib import image as matim
 import math
 
 def aleatoire(a):
+    """
+    Retourne un nobre pseudo-aleatoire entre 0 et 9, a l'aide de la seed a
+    """
     return int(str(abs((np.exp(a**1.2))%997)*5.3)[0])
 
 def CreateDayTemp(heure, dayMedium)->int:
     """
-    Va utiliser la vela
+    Renvoie une temperature selon une heure et une moyenne d'un jour.
     """
     rep = dayMedium-2 + np.sin(heure*np.pi/12 +aleatoire(dayMedium)/12+4.5)*6
     
@@ -18,7 +21,7 @@ def CreateDayTemp(heure, dayMedium)->int:
 
 def CreateDayPrecip(heure, jour, Mois, dayMediumTemp)->int:
     """
-    Va utiliser la vela
+    Crée les precipitations d'une journée a l'aide de pseudo-aleatoire, se basant sur tous les arguments.
     """
     Moyenne=[20,25,60,70,40,15,12,10,20,80,75,34]
     dayMedium=Moyenne[Mois-1]
@@ -48,16 +51,21 @@ def CreateTemp(Date):
     return TempDepart
 
 def DrawStadiumExample(nbX, nbY):
+    """
+    Renvoie le visuel de la repartition des capteurs du stade selon
+    leur nombre nbX et nbY qui correspondent au nombre de capteurs sur
+    x et y
+    """
 
-    imageData = gaussian_filter([[(0,(40 + randint(1, 10))*7,0) for _ in range(100)] for _ in range(50)], sigma=0.75)
+    imageData = gaussian_filter(
+        [[(0,(40 + randint(1, 10))*7,0) for _ in range(100)] for _ in range(50)],
+        sigma=0.75)
 
-    for i in range(int(25/nbY), 50, int(50/nbY+1)-1):
+    for i in range(int(25//nbY), 50, int(50//nbY)):
         for j in range(int(50//nbX), 100, int(100//nbX)):
             imageData[i][j] = (255, 0, 0)
 
     finalImage = np.array(imageData).astype(np.uint8)
-
-    #print(finalImage)
 
     matim.imsave("./src/temp/tempGraph.png", finalImage)        
     image = Image.open("./src/temp/tempGraph.png")        
