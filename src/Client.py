@@ -12,12 +12,21 @@ class Client:
         self.RefreshClientStadiums()
         
     def GetClientId(self)->str:
+        """
+        return clientId
+        """
         return self.id
     
     def GetClientStadiums(self)->list[tuple[str, str]]:
+        """
+        return les stades qui appartiennent au client
+        """
         return self.stadiumList
     
     def RefreshClientStadiums(self)->list[str]:
+        """
+        met a jour les stades qui apartiennent au client, el les retourne
+        """
 
         bdd = sqlite3.connect(self.root.BDDPATH)
         rep = BDDapi.GetClientStadiums(bdd, self.id)

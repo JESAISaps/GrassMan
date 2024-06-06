@@ -34,6 +34,9 @@ class StadiumFrameTemplate(tk.Frame):
         self.configureStadiumFrame = tk.Frame(self, highlightbackground="black", highlightthickness=1)
 
         def GetBoolStateString(state):
+            """
+            Transform un bool en son equivalent francais
+            """
             if state:
                 return "On"
             return "Off"
@@ -124,7 +127,9 @@ class StadiumFrameTemplate(tk.Frame):
         self.ToggleTodayGraph(self.showTodayBool.get())
 
     def ToggleTodayGraph(self, state):
-
+        """
+        passe de l'affichage du jour aux archives
+        """
         if state: # If we only want to show today's temps
             self.calendar.grid_remove()
             self.stadiumNameFrame.grid_remove()
@@ -261,6 +266,10 @@ class StadiumFrameTemplate(tk.Frame):
         #self.update_idletasks()
 
     def createNewTempFromDefault(self, oldtemps):
+        """
+        met de l'aleatoire dans les temperatures des capteurs, mais bien fait,
+        et de maniere uniforme.
+        """
         rep = []
         if oldtemps[0]%2 == 1:
             sign = 1

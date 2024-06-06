@@ -42,7 +42,10 @@ class App(Tk):
         
     # to display the frame passed as parameter
     def show_frame(self, cont:str):
-
+        """
+        Affiche la page cont
+        """
+        
         # remove current page
         self.frames[self.activeFrame].pack_forget()
 
@@ -60,11 +63,17 @@ class App(Tk):
             frame.ShowButtons()
 
     def AddStadiumFrame(self, name, dimensions=("10", "5")):
+        """
+        Ajoute une page de stade a self.frames
+        """
         if name in ["HomeFrame", "CreateStadium", "StadiumList"]:
             return
         self.frames[name] = StadiumFrameTemplate(self.container, self, name, (int(dimensions[0]), int(dimensions[1])))
 
     def createUserSession(self, id):
+        """
+        crée la session utilisateur
+        """
         if self.client is not None:
             print("Error, existing session running")
             return
@@ -72,12 +81,18 @@ class App(Tk):
             self.client = Client(self, id)    
     
     def CreateStadiumFrames(self):
+        """
+        cree les pages reliees au stades
+        """
 
         stadiumList = self.client.GetClientStadiums()
         for stadium in stadiumList:
             self.AddStadiumFrame(stadium[0], stadium[1].split("x"))
 
     def DisconnectClient(self):
+        """
+        deconnecte le client
+        """
         self.show_frame("HomeFrame")
         self.client = None
         temp = self.frames.copy()

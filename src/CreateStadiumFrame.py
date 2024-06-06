@@ -82,6 +82,9 @@ class CreateStadiumFrame(tk.Frame):
         self.pack_propagate(False)
     
     def RefreshStadium(self):
+        """
+        met a jour l'affichage des capteurs
+        """
         self.stadiumImage = Graphs.DrawStadiumExample(self.xDim.get(), self.yDim.get())
         self.StadiumImageLabel.configure(image=self.stadiumImage)
         self.update_idletasks()
@@ -123,6 +126,9 @@ class CreateStadiumFrame(tk.Frame):
         bdd.close()
     
     def CheckValues(self)->bool:
+        """
+        verifie si les données entrées sont valides, retourne True or False
+        """
         isGood = True
 
         # name must not be empty or just spaces

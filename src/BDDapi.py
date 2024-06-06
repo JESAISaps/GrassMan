@@ -5,6 +5,9 @@ import Graphs
 from random import randint
 
 def connection(bdd, id,mdp):
+    """
+    return True si la connection est possible, avec le mot de passe et idClient.
+    """
     bddstade = bdd.cursor()
 
     if CheckIfIdExists(bdd, id):
@@ -18,6 +21,9 @@ def connection(bdd, id,mdp):
     return None
 
 def CheckIfIdExists(bdd, id):
+    """
+    return True si l'id existe dans la base
+    """
     bddstade = bdd.cursor()
 
     clientidentifiant=bddstade.execute('SELECT identifiant FROM client;').fetchall()
@@ -27,6 +33,9 @@ def CheckIfIdExists(bdd, id):
     return False
 
 def Nouveauclient(bdd, id,name,name1,motdepasse):
+    """
+    insere un nouveau client dans la table client
+    """
     bddstade = bdd.cursor()
     psw = motdepasse.encode("utf-8")
     command = "INSERT INTO client VALUES (?, ?, ?, ?);"
@@ -39,6 +48,9 @@ def NewStadium(bdd:sqlite3.Connection, name:str, size:tuple, nbCapteurs:int, cli
     bddStade.execute(command, (name, str(size[0]) + "x" + str(size[1]), nbCapteurs, clientID))
 
 def CheckIfStadiumExists(bdd:sqlite3.Connection, name:str, clientID:str):
+    """
+    return True si le stade name existe dans stade
+    """
     bddstade = bdd.cursor()
 
     # Returns True if Stadium name already taken
@@ -56,30 +68,18 @@ def GetClientStadiums(bdd:sqlite3.Connection, clientID:str)->list[str]:
         rep.append(stadium)
     return rep
 
-def associerdatetemperature(bddstade):
-    bdd=bddstade.cursor()
-    listejour=bdd.execute('Select Jour from Temperature;').fetchall()
-    if listejour==[]:
-        return 1
-    else:
-        return listejour[len(listejour)-1][0]+1
-
-
-def recupidcapteur(x,y,idstade,bddstade):
-    bdd=bddstade.cursor()
-    idcapteur=bdd.execute('Select IdCapteurs from Capteurs where PositionX= '+str(x)+' and PositionY= '+str(y)+' and IdStade= '+str(idstade)).fetchall()
-    #print(idcapteur)
-    return idcapteur[0][0]
-
 def InitializeNewStadium(bdd, name):
     """
-    Creates the temps since 2000, is only called from outside on stadium creation
+    Crée des temperatures depuis l'annee 2000, et demande de les ajouter dans la bdd
     """
     passedDays= CreateDaysHistory()
     temps = CreateOldTemps(passedDays)
     AddOldTempsToDB(bdd, temps, name)
 
 def CreateDaysHistory():
+    """
+    retourne une liste des dates depuis l'an 2000
+    """
     rep = []
     for year in range(2000, datetime.now().year + 1):
         start_date=datetime(year, 1, 1)
@@ -91,12 +91,18 @@ def CreateDaysHistory():
     return rep
 
 def AddOldTempsToDB(bdd:sqlite3.Connection, temps, name:str):
+    """
+    ajoute dans la table Temperatures les temperatures du stade name
+    """
     bddstade = bdd.cursor()
     command = "INSERT INTO Temperature VALUES (?, ?, ?);"
     for day in temps:
         bddstade.execute(command, (name, *day))
 
 def CreateOldTemps(passedDays):
+    """
+    crée une liste des temperatures depuis l'an 2000
+    """
     rep = []
     dif = randint(-5, 5) #Facon avec laquelle tous les stades n'ont pas une temp moyenne trop proche
     for day in passedDays:
@@ -104,6 +110,9 @@ def CreateOldTemps(passedDays):
     return rep
 
 def GetMediumTemp(bdd:sqlite3.Connection, stadium:str, day:datetime) -> int:
+    """
+    retourne la temperature du jour day, du stade stadium
+    """
     #bdd.set_trace_callback(print)
     bddStade = bdd.cursor()
 
@@ -112,6 +121,9 @@ def GetMediumTemp(bdd:sqlite3.Connection, stadium:str, day:datetime) -> int:
     return rep
 
 def GetTempsInMonth(bdd, stade, month, year):
+    """
+    renvoie une liste des temperatures du mois month et annee year, du stade stade
+    """
     bddStade = bdd.cursor()
 
     rep = []
@@ -127,6 +139,9 @@ def GetTempsInMonth(bdd, stade, month, year):
 
 
 def GetTempsInYear(bdd, stade, year):
+    """
+    renvoie une liste des temperatures de l'annee annee du stade stade
+    """
     bddStade = bdd.cursor()
     rep = []
     command = "SELECT TEMPERATURE FROM TEMPERATURE WHERE JOUR LIKE ? AND Stade = ?;"
@@ -136,6 +151,9 @@ def GetTempsInYear(bdd, stade, year):
     return rep
 
 def ChangeUserPassword(bdd:sqlite3.Connection, userId, newPass):
+    """
+    change le mot de passe de l'utilisateur userId avec le mdp newPass
+    """
     bddStade = bdd.cursor()
     command = "UPDATE client SET motdepasse = ? WHERE identifiant = ?;"
     bddStade.execute(command, (str(bcrypt.hashpw(newPass.encode("utf-8"), bcrypt.gensalt()))[2:-1], userId))

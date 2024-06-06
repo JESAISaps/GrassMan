@@ -31,13 +31,21 @@ def CreateDayPrecip(heure, jour, Mois, dayMediumTemp)->int:
     
     return rep
 
-def RechauffementClimatique(Moyenne,Date):   
+def RechauffementClimatique(Moyenne,Date):
+    """
+    modifie une temperature Moyenne selon sa date Date pour simuler du
+    rechaufement climatique
+    """
     if Date[2]>2000:
         for k in range(len(Moyenne)):
             Moyenne[k]=Moyenne[k]+math.log(Moyenne[k]/10*(Date[2]-2000),10)
     return Moyenne
                     
 def CreateTemp(Date):
+    """
+    Renvoie une temperature (int) pseudo aleatoire qui depend de la date en argument, sous la
+    forme [jour, mois, annee]
+    """
     Moyenne=[3.7,4.4,8.1,11.7,15.6,20.2,22.6,22.1,18,13.6,8,4.5]
     Moyenne=RechauffementClimatique(Moyenne,Date)
     Mois=Date[1]-1 # On fait -1 car les dates commencent a 1

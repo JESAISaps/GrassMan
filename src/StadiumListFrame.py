@@ -32,7 +32,9 @@ class StadiumListFrame(tk.Frame):
 
 
     def ShowButtons(self)->None:
-
+        """
+        affiche les boutons, appelé apres pour que le client existe
+        """
         # On supprime les boutons affichés pour les remplacer
         for i in range(len(self.shownButtons)):
             item = self.shownButtons.pop(0)

@@ -16,5 +16,8 @@ class Stade:
         return self.longueur, self.largeur
           
     def GetIdStade(self):
+        """
+        retourne le nom du stade
+        """
         return self.nom
 

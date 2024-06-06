@@ -37,6 +37,9 @@ class HomeFrame(tk.Frame):
         self.logMessage = ttk.Label(self)
 
     def LoginUser(self, id, psw)->None:
+        """
+        Connecte le client, si les infos sont bonnes
+        """
         bdd = sqlite3.connect(self.root.BDDPATH)
         access = BDDapi.connection(bdd, id, psw)
         bdd.close()
@@ -55,6 +58,9 @@ class HomeFrame(tk.Frame):
             self.showLogMessage("Erreur, veuillez vérifiez vos identifiants et mot de passe.", "red")
 
     def showLogMessage(self, text, color):
+        """
+        affiche le log text avec la couleur color
+        """
         self.logMessage.configure(text=text, background=color)
         self.update_idletasks()
         self.logMessage.pack(side="top", pady=(3, 0))

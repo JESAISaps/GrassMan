@@ -59,6 +59,9 @@ class SideMenu(tk.Frame):
         self.pack_propagate(False)
     
     def expand(self)->None:
+        """
+        agrandit le menu
+        """
         if(self.expanded):
             return
         self.isMoving = True
@@ -76,6 +79,9 @@ class SideMenu(tk.Frame):
             self.fill()
 
     def contract(self)->None:
+        """
+        retrecie le menu
+        """
         if(self.isLocked.get()):
             return
         self.isMoving = False
@@ -94,6 +100,9 @@ class SideMenu(tk.Frame):
             self.fill()
     
     def ChangeFrame(self, frameName:str):
+        """
+        change la page du menu
+        """
 
         # remove current page
         self.frames[self.activeFrame].pack_forget()
@@ -105,6 +114,9 @@ class SideMenu(tk.Frame):
         frame.tkraise()
 
     def fill(self)->None:
+        """
+        vide ou rempli le menu selon s'il est agrandit ou retrecit
+        """
         if self.expanded: # If the frame is extended
 
             self.frames[self.activeFrame].pack(fill="none", expand=True, anchor="center")
@@ -119,7 +131,9 @@ class SideMenu(tk.Frame):
             self.plusImageObject.pack(fill="none", expand=True)
     
     class CreateUserMenu(tk.Frame):
-
+        """
+        Page de creation du compte
+        """
         def __init__(self, parent:tk.Frame, root):
             parent.update_idletasks()
             tk.Frame.__init__(self, parent, bg=GREEN, width=50, height=parent.winfo_height())
@@ -204,7 +218,9 @@ class SideMenu(tk.Frame):
             bdd.close()
 
     class AccountMenu(tk.Frame):
-
+        """
+        Page d'infos du compte, avec le changement dan mdp, le retour au menu, et la deconnexion
+        """
         def __init__(self, parent:tk.Frame, root):
             
             tk.Frame.__init__(self, parent, bg=GREEN, width=50, height=parent.winfo_height())
