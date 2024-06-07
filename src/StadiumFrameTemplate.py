@@ -218,6 +218,9 @@ class StadiumFrameTemplate(tk.Frame):
                         self.axes.plot(nbValeurs[whereToCut:], temps[whereToCut:], "g--", label="Prédictions Températures")
                     else:
                         self.axes.plot(nbValeurs, temps)
+                    
+                    aimedDayIndex = abs(date(self.calendar.selection_get().year, self.calendar.selection_get().month, 1) - self.calendar.selection_get()).days
+                    self.axes.plot(nbValeurs[aimedDayIndex], temps[aimedDayIndex], "ro")
 
                     bdd.close()
 
@@ -233,12 +236,13 @@ class StadiumFrameTemplate(tk.Frame):
                     
                     if self.calendar.selection_get().year == datetime.now().year:
                         whereToCut = abs(date(self.calendar.selection_get().year, 1, 1) - date.today()).days
-                        print(whereToCut)
                         self.axes.plot(dates[:whereToCut+1], temps[:whereToCut+1], label="Mesures Températures")
                         self.axes.plot(dates[whereToCut:], temps[whereToCut:], "g--", label="Prédictions Températures")
                     else:
                         self.axes.plot(dates, temps)
                     isYear = True
+                    aimedDayIndex = abs(date(self.calendar.selection_get().year, 1, 1) - self.calendar.selection_get()).days
+                    self.axes.plot(dates[aimedDayIndex], temps[aimedDayIndex], "ro")
                     bdd.close()
                 case _:
                     print("Ho no")
@@ -262,8 +266,8 @@ class StadiumFrameTemplate(tk.Frame):
         for line in leg.get_lines():
             line.set_linewidth(2)
 
-        
-        self.axes.set_xlim(0, max(len(nbValeurs)-1, 23))
+        if not isYear:
+            self.axes.set_xlim(1, max(len(nbValeurs)-1, 23))
         self.axes.set_ylim(-5, 35)
         self.axes.set_xlabel(xLabel)
         self.axes.set_ylabel("Températures (C°)", color=TABLEAU_COLORS["tab:blue"])
